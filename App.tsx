@@ -26,9 +26,9 @@ import Toast from "react-native-root-toast";
 import { Camera, CameraCapturedPicture, CameraType } from "expo-camera";
 import { Button, TouchableOpacity } from "react-native";
 
-import { supabase } from "./initSupabase";
+import { supabase } from "./supabase";
 
-import PlaceDetailsScreen from "./screens/PlaceDetailsScreen";
+import PlaceDetailsScreen from "./screens/PlaceDetailsTab";
 import { LocationObject } from "expo-location";
 import { HomeScreenProps, Place, RootStackParamList } from "./types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -55,17 +55,21 @@ function HomeScreen({ navigation }: HomeScreenProps) {
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
-  const {
-    isLoading,
-    error,
-    data: placesList,
-  } = useQuery({
-    queryKey: ["places"],
-    queryFn: () =>
-      fetch("http://192.168.0.102:3001/places").then((res) => res.json()),
-  });
+  // const {
+  //   isLoading,
+  //   error,
+  //   data: placesList,
+  // } = useQuery({
+  //   queryKey: ["places"],
+  //   queryFn: async () =>
+  //   // fetch("http://192.168.0.102:3001/places").then((res) => res.json()),
+  // );
 
-  const mutation = useMutation<
+  const { data: placesList, isLoading, error } = useFetchPlaces();
+
+  const mutation = useCreatePlace();
+
+  /* onst mutation = useMutation<
     unknown,
     unknown,
     {
@@ -89,7 +93,7 @@ function HomeScreen({ navigation }: HomeScreenProps) {
         queryClient.invalidateQueries("places");
       },
     }
-  );
+  ); */
 
   useEffect(() => {
     (async () => {
@@ -251,8 +255,7 @@ function HomeScreen({ navigation }: HomeScreenProps) {
                         {
                           name: placeName,
                           content: placeContent,
-                          latitude: placeCoords.latitude,
-                          longitude: placeCoords.longitude,
+                          location: `POINT(${placeCoords.longitude} ${placeCoords.latitude})`,
                         },
                         {
                           onSuccess: () => {
@@ -301,7 +304,7 @@ function HomeScreen({ navigation }: HomeScreenProps) {
                       setModalStep(1);
                       setIsModalVisible(!isModalVisible);
                       if (selectedPlaceId !== null) {
-                        navigation.navigate("PlaceDetails", {
+                        navigation.navigate("Place", {
                           placeId: selectedPlaceId,
                         });
                       }
@@ -330,7 +333,8 @@ function HomeScreen({ navigation }: HomeScreenProps) {
 }
 
 import { Session } from "@supabase/supabase-js";
-
+import PlaceScreen from "./screens/PlaceScreen";
+import { useCreatePlace, useFetchPlaces } from "./hooks/reactQuery";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -374,10 +378,11 @@ export default function App() {
           ) : (
             <>
               <Stack.Screen name="Home" component={HomeScreen} />
-              <Stack.Screen
+              {/*     <Stack.Screen
                 name="PlaceDetails"
                 component={PlaceDetailsScreen}
-              />
+              /> */}
+              <Stack.Screen name="Place" component={PlaceScreen} />
             </>
           )}
         </Stack.Navigator>

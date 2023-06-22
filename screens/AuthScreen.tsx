@@ -5,7 +5,7 @@ import { Styles } from "../constants";
 
 import { Button, Input } from "react-native-elements";
 
-import { supabase } from "../initSupabase";
+import { supabase } from "../supabase";
 
 export default function AuthScreen() {
   const [email, setEmail] = useState("");

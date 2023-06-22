@@ -23,10 +23,9 @@ export type PlaceScreenProps = NativeStackScreenProps<
 >;
 
 export interface Place {
-  id: number;
+  id?: number;
   name: string;
   content?: string;
-  latitude: number;
-  longitude: number;
-  createdAt: Date;
+  location: string;
+  createdAt?: Date;
 }
