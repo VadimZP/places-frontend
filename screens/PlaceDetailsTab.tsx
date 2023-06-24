@@ -64,11 +64,11 @@ function PlaceDetailsScreen({ placeId }) {
               const { data } = await supabase.storage
                 .from("places")
                 .getPublicUrl(`${placeId}/${item.name}`);
-
               imageUrls.push({ id: data.publicUrl, url: data.publicUrl });
             })
           );
           setPlacePhotos(imageUrls);
+
         } catch (error) {
           console.error("Failed to fetch image URLs:", error);
         }

@@ -47,53 +47,17 @@ function HomeScreen({ navigation }: HomeScreenProps) {
   const [modalStep, setModalStep] = useState(1);
 
   const [placeCoords, setPlaceCoords] = useState<{
-    latitude: number | null;
     longitude: number | null;
-  }>({ latitude: null, longitude: null });
+    latitude: number | null;
+  }>({ longitude: null, latitude: null,  });
   const [placeName, setPlaceName] = useState("");
   const [placeContent, setPlaceContent] = useState("");
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
-  // const {
-  //   isLoading,
-  //   error,
-  //   data: placesList,
-  // } = useQuery({
-  //   queryKey: ["places"],
-  //   queryFn: async () =>
-  //   // fetch("http://192.168.0.102:3001/places").then((res) => res.json()),
-  // );
-
   const { data: placesList, isLoading, error } = useFetchPlaces();
 
   const mutation = useCreatePlace();
-
-  /* onst mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      name: string;
-      content: string;
-      latitude: number;
-      longitude: number;
-    }
-  >(
-    (placeData) => {
-      return fetch("http://192.168.0.102:3001/places", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(placeData),
-      }).then((res) => res.json());
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries("places");
-      },
-    }
-  ); */
 
   useEffect(() => {
     (async () => {
@@ -152,33 +116,38 @@ function HomeScreen({ navigation }: HomeScreenProps) {
         style={styles.map}
         onLongPress={createPlaceHandler}
         initialRegion={{
-          latitude: location?.coords.latitude,
           longitude: location?.coords.longitude,
-          latitudeDelta: 0.01,
+          latitude: location?.coords.latitude,
           longitudeDelta: 0.01,
+          latitudeDelta: 0.01,
         }}
       >
-        {placesList?.map((place: Place) => (
-          <Marker
-            key={place.id}
-            coordinate={{
-              latitude: place.latitude,
-              longitude: place.longitude,
-            }}
-          >
-            <Callout
-              onPress={() => {
-                setIsModalVisible(true);
-                setSelectedPlaceId(place.id);
-                setModalStep(3);
+        {placesList?.map((place: Place) => {
+          const [longitude, latitude] = place.location
+            .replace(/POINT\(|\)/g, "")
+            .split(" ");
+          return (
+            <Marker
+              key={place.id}
+              coordinate={{
+                longitude: longitude,
+                latitude: latitude,
               }}
             >
-              <View>
-                <Text>{place.name}</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
+              <Callout
+                onPress={() => {
+                  setIsModalVisible(true);
+                  setSelectedPlaceId(place.id);
+                  setModalStep(3);
+                }}
+              >
+                <View>
+                  <Text>{place.name}</Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+        })}
       </MapView>
       <Modal
         animationType="slide"
@@ -243,8 +212,8 @@ function HomeScreen({ navigation }: HomeScreenProps) {
                     style={styles.button}
                     onPress={() => {
                       if (
-                        placeCoords.latitude === null ||
-                        placeCoords.longitude === null
+                        placeCoords.longitude === null ||
+                        placeCoords.latitude === null
                       ) {
                         console.error(
                           `Something went wrong with latitude and longitude`

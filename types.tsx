@@ -23,9 +23,18 @@ export type PlaceScreenProps = NativeStackScreenProps<
 >;
 
 export interface Place {
-  id?: number;
+  id: number;
   name: string;
   content?: string;
   location: string;
-  createdAt?: Date;
+  createdAt: Date;
+}
+
+export interface Review {
+  id: number;
+  content: string;
+  rating: number;
+  place_id: number;
+  author_id: number;
+  createdAt: Date;
 }

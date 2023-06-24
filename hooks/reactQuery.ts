@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 import { supabase } from '../supabase';
-import { Place } from '../types';
+import { Place, Review } from '../types';
 
 export function useFetchPlaces() {
   return useQuery<Array<Place>>('places', async (): Promise<Array<Place>> => {
-    const { data, error } = await supabase.rpc('get_places')
+    const { data, error } = await supabase.rpc('get_places');
+
     if (error) {
       throw new Error(error.message);
     }
@@ -18,9 +19,8 @@ export function useCreatePlace() {
 
   return useMutation<unknown, unknown, Place>(
     async (placeData) => {
-      console.log(placeData)
-      const { error } = await supabase.from('places').insert(placeData)
-      console.log(error)
+      const { error } = await supabase.from('places').insert(placeData);
+
       if (error) {
         throw new Error(error.message);
       }
@@ -28,6 +28,36 @@ export function useCreatePlace() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries("places");
+      },
+    }
+  );
+}
+
+export function useFetchReviews() {
+  return useQuery<Array<Review>>('reviews', async (): Promise<Array<Review>> => {
+    const { data, error } = await supabase.from('reviews').select("*")
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  });
+}
+
+export function useCreateReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, unknown, Review>(
+    async (reviewData) => {
+      const { error } = await supabase.from('reviews').insert(reviewData);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("reviews");
       },
     }
   );
