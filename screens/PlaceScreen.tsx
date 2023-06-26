@@ -13,7 +13,11 @@ export default function PlaceScreen({ route }) {
           <PlaceDetailsTab {...props} placeId={route.params.placeId} />
         )}
       </Tab.Screen>
-      <Tab.Screen name="Reviews" component={PlaceReviewsTab} />
+      <Tab.Screen name="Reviews">
+        {(props) => (
+          <PlaceReviewsTab {...props} placeId={route.params.placeId} />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

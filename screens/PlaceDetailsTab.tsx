@@ -19,8 +19,9 @@ import Toast from "react-native-root-toast";
 
 import { Place, PlaceScreenProps } from "../types";
 import { supabase } from "../supabase";
+import { useCreateReview } from "../hooks/reactQuery";
 
-function PlaceDetailsScreen({ placeId }) {
+function PlaceDetailsTab({ placeId }) {
   const queryClient: QueryClient = useQueryClient();
 
   const place = queryClient
@@ -252,7 +253,7 @@ function PlaceDetailsScreen({ placeId }) {
   );
 }
 
-export default memo(PlaceDetailsScreen)
+export default memo(PlaceDetailsTab)
 
 const styles = StyleSheet.create({
   container: {

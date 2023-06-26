@@ -1,9 +1,113 @@
-import { Pressable, SafeAreaView, StyleSheet, Text } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { memo, useEffect, useState } from "react";
+import {
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  TextInput,
+} from "react-native";
+import Toast from "react-native-root-toast";
+import StarRating from "react-native-star-rating-widget";
+import { useCreateReview, useFetchReviews } from "../hooks/reactQuery";
 
-export default function PlaceReviewsTab() {
-  function createReview() {}
+function PlaceReviewsTab({ placeId }) {
+  const { data: reviewsList, isLoading, error } = useFetchReviews();
+  console.log("🚀 ~ file: PlaceReviewsTab.tsx:20 ~ PlaceReviewsTab ~ reviewsList:", reviewsList)
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [placeContent, setPlaceContent] = useState("");
+
+  const [rating, setRating] = useState(0);
+
+  const mutation = useCreateReview();
+
+  function createReview() {
+    setIsModalVisible(true);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setIsModalVisible(!isModalVisible);
+        }}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text>Leave your feedback about this place</Text>
+              <View style={styles.inputWrapper}>
+                {/* <Text style={styles.inputLabel}>Review</Text> */}
+                <TextInput
+                  style={styles.textarea}
+                  multiline
+                  numberOfLines={5}
+                  value={placeContent}
+                  onChangeText={setPlaceContent}
+                />
+              </View>
+              <StarRating
+                enableHalfStar={false}
+                rating={rating}
+                onChange={setRating}
+              />
+
+              <Pressable
+                style={styles.button}
+                onPress={async () => {
+                  try {
+                    const jsonValue = await AsyncStorage.getAllKeys();
+                    const kek = await AsyncStorage.getItem(jsonValue[0]);
+                    const userId = JSON.parse(kek).user.id;
+
+                    mutation.mutate(
+                      {
+                        content: "Tests review yo!!!!",
+                        rating: 5,
+                        place_id: placeId,
+                        author_id: userId,
+                      },
+                      {
+                        onSuccess: () => {
+                          Toast.show("Thank you for the review!", {
+                            duration: Toast.durations.SHORT,
+                            position: 40,
+                          });
+
+                          setIsModalVisible(!isModalVisible);
+                        },
+                      }
+                    );
+                  } catch (e) {
+                    // error reading value
+                  }
+                }}
+              >
+                <Text style={styles.textStyle}>Yes</Text>
+              </Pressable>
+              <Pressable
+                style={styles.button}
+                onPress={() => {
+                  setIsModalVisible(!isModalVisible);
+                }}
+              >
+                <Text style={styles.textStyle}>No</Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
       <Pressable style={styles.button} onPress={createReview}>
         <Text style={styles.textStyle}>Write a review</Text>
       </Pressable>
@@ -11,10 +115,43 @@ export default function PlaceReviewsTab() {
   );
 }
 
+export default memo(PlaceReviewsTab);
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff8e7",
     flex: 1,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalView: {
+    width: "70%",
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 14,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  inputWrapper: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    marginBottom: 10,
+  },
+  textarea: {
+    textAlignVertical: "top",
+    borderWidth: 1,
+    padding: 10,
+    height: 100,
   },
   button: {
     borderRadius: 6,

@@ -13,25 +13,15 @@ import {
 import MapView, { Marker, Callout, LongPressEvent } from "react-native-maps";
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as Location from "expo-location";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "react-query";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Toast from "react-native-root-toast";
 
-import { Camera, CameraCapturedPicture, CameraType } from "expo-camera";
-import { Button, TouchableOpacity } from "react-native";
-
 import { supabase } from "./supabase";
 
-import PlaceDetailsScreen from "./screens/PlaceDetailsTab";
 import { LocationObject } from "expo-location";
 import { HomeScreenProps, Place, RootStackParamList } from "./types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthScreen from "./screens/AuthScreen";
 
 const queryClient = new QueryClient();
@@ -49,7 +39,7 @@ function HomeScreen({ navigation }: HomeScreenProps) {
   const [placeCoords, setPlaceCoords] = useState<{
     longitude: number | null;
     latitude: number | null;
-  }>({ longitude: null, latitude: null,  });
+  }>({ longitude: null, latitude: null });
   const [placeName, setPlaceName] = useState("");
   const [placeContent, setPlaceContent] = useState("");
 
@@ -347,10 +337,6 @@ export default function App() {
           ) : (
             <>
               <Stack.Screen name="Home" component={HomeScreen} />
-              {/*     <Stack.Screen
-                name="PlaceDetails"
-                component={PlaceDetailsScreen}
-              /> */}
               <Stack.Screen name="Place" component={PlaceScreen} />
             </>
           )}
