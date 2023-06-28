@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -10,17 +10,18 @@ import {
   Platform,
   View,
   TextInput,
+  FlatList,
 } from "react-native";
 import Toast from "react-native-root-toast";
 import StarRating from "react-native-star-rating-widget";
 import { useCreateReview, useFetchReviews } from "../hooks/reactQuery";
+import { DateTime } from "luxon";
 
 function PlaceReviewsTab({ placeId }) {
   const { data: reviewsList, isLoading, error } = useFetchReviews();
-  console.log("🚀 ~ file: PlaceReviewsTab.tsx:20 ~ PlaceReviewsTab ~ reviewsList:", reviewsList)
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [placeContent, setPlaceContent] = useState("");
+  const [reviewContent, setReviewContent] = useState("");
 
   const [rating, setRating] = useState(0);
 
@@ -53,8 +54,8 @@ function PlaceReviewsTab({ placeId }) {
                   style={styles.textarea}
                   multiline
                   numberOfLines={5}
-                  value={placeContent}
-                  onChangeText={setPlaceContent}
+                  value={reviewContent}
+                  onChangeText={setReviewContent}
                 />
               </View>
               <StarRating
@@ -73,8 +74,8 @@ function PlaceReviewsTab({ placeId }) {
 
                     mutation.mutate(
                       {
-                        content: "Tests review yo!!!!",
-                        rating: 5,
+                        content: reviewContent,
+                        rating: rating,
                         place_id: placeId,
                         author_id: userId,
                       },
@@ -111,6 +112,27 @@ function PlaceReviewsTab({ placeId }) {
       <Pressable style={styles.button} onPress={createReview}>
         <Text style={styles.textStyle}>Write a review</Text>
       </Pressable>
+      {reviewsList?.length ? (
+        <FlatList
+          horizontal
+          data={reviewsList}
+          renderItem={({ item }) => {
+            return (
+              <View>
+                <Text>{item.content}</Text>
+                <StarRating enableHalfStar={false} rating={item.rating} />
+                <View style={{ justifyContent: "space-between" }}>
+                  <Text>{item.profiles.email}</Text>
+                  <Text>
+                    {DateTime.fromISO(item.created_at).toFormat("yyyy LLL dd")}
+                  </Text>
+                </View>
+              </View>
+            );
+          }}
+          keyExtractor={(item) => item.id}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -35,7 +35,11 @@ export function useCreatePlace() {
 
 export function useFetchReviews() {
   return useQuery<Array<Review>>('reviews', async (): Promise<Array<Review>> => {
-    const { data, error } = await supabase.from('reviews').select("*")
+    const { data, error } = await supabase.from('reviews').select(`id,
+    content,
+    rating,
+    place_id,
+    created_at, profiles ( email )`);
 
     if (error) {
       throw new Error(error.message);

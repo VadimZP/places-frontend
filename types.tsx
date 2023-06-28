@@ -27,7 +27,7 @@ export interface Place {
   name: string;
   content?: string;
   location: string;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export interface Review {
@@ -36,5 +36,8 @@ export interface Review {
   rating: number;
   place_id: number;
   author_id: number;
-  createdAt: Date;
+  created_at: Date;
+  profiles: {
+    email: string;
+  }
 }
