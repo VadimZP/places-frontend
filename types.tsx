@@ -1,43 +1,43 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { SupabaseClient } from '@supabase/supabase-js'
 
-export type RootStackParamList = {
-  Auth: undefined;
-  Home: undefined;
-  PlaceDetails: { placeId: number };
-};
+export interface RootStackParamList {
+  Auth: undefined
+  Home: undefined
+  PlaceDetails: { placeId: number }
+}
 
 export type AuthScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  "Auth"
->;
+RootStackParamList,
+'Auth'
+>
 
 export type HomeScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  "Home"
->;
+RootStackParamList,
+'Home'
+>
 
 export type PlaceScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  "PlaceDetails"
->;
+RootStackParamList,
+'PlaceDetails'
+>
 
 export interface Place {
-  id: number;
-  name: string;
-  content?: string;
-  location: string;
-  created_at: Date;
+  id: number
+  name: string
+  content?: string
+  location: string
+  created_at: Date
 }
 
 export interface Review {
-  id: number;
-  content: string;
-  rating: number;
-  place_id: number;
-  author_id: number;
-  created_at: Date;
+  id: number
+  content: string
+  rating: number
+  place_id: number
+  author_id: number
+  created_at: Date
   profiles: {
-    email: string;
+    email: string
   }
 }

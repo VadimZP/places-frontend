@@ -1,5 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { memo, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { memo, useState } from 'react'
 import {
   Pressable,
   SafeAreaView,
@@ -10,40 +10,40 @@ import {
   Platform,
   View,
   TextInput,
-  FlatList,
-} from "react-native";
-import Toast from "react-native-root-toast";
-import StarRating from "react-native-star-rating-widget";
-import { useCreateReview, useFetchReviews } from "../hooks/reactQuery";
-import { DateTime } from "luxon";
+  FlatList
+} from 'react-native'
+import Toast from 'react-native-root-toast'
+import StarRating from 'react-native-star-rating-widget'
+import { useCreateReview, useFetchReviews } from '../hooks/reactQuery'
+import { DateTime } from 'luxon'
 
-function PlaceReviewsTab({ placeId }) {
-  const { data: reviewsList, isLoading, error } = useFetchReviews();
+function PlaceReviewsTab ({ placeId }) {
+  const { data: reviewsList, isLoading, error } = useFetchReviews()
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [reviewContent, setReviewContent] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [reviewContent, setReviewContent] = useState('')
 
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(0)
 
-  const mutation = useCreateReview();
+  const mutation = useCreateReview()
 
-  function createReview() {
-    setIsModalVisible(true);
+  function createReview () {
+    setIsModalVisible(true)
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Modal
+         <Modal
         animationType="slide"
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => {
-          setIsModalVisible(!isModalVisible);
+          setIsModalVisible(!isModalVisible)
         }}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
@@ -68,28 +68,28 @@ function PlaceReviewsTab({ placeId }) {
                 style={styles.button}
                 onPress={async () => {
                   try {
-                    const jsonValue = await AsyncStorage.getAllKeys();
-                    const kek = await AsyncStorage.getItem(jsonValue[0]);
-                    const userId = JSON.parse(kek).user.id;
+                    const jsonValue = await AsyncStorage.getAllKeys()
+                    const kek = await AsyncStorage.getItem(jsonValue[0])
+                    const userId = JSON.parse(kek).user.id
 
                     mutation.mutate(
                       {
                         content: reviewContent,
-                        rating: rating,
+                        rating,
                         place_id: placeId,
-                        author_id: userId,
+                        author_id: userId
                       },
                       {
                         onSuccess: () => {
-                          Toast.show("Thank you for the review!", {
+                          Toast.show('Thank you for the review!', {
                             duration: Toast.durations.SHORT,
-                            position: 40,
-                          });
+                            position: 40
+                          })
 
-                          setIsModalVisible(!isModalVisible);
-                        },
+                          setIsModalVisible(!isModalVisible)
+                        }
                       }
-                    );
+                    )
                   } catch (e) {
                     // error reading value
                   }
@@ -100,7 +100,7 @@ function PlaceReviewsTab({ placeId }) {
               <Pressable
                 style={styles.button}
                 onPress={() => {
-                  setIsModalVisible(!isModalVisible);
+                  setIsModalVisible(!isModalVisible)
                 }}
               >
                 <Text style={styles.textStyle}>No</Text>
@@ -112,7 +112,8 @@ function PlaceReviewsTab({ placeId }) {
       <Pressable style={styles.button} onPress={createReview}>
         <Text style={styles.textStyle}>Write a review</Text>
       </Pressable>
-      {reviewsList?.length ? (
+      {reviewsList?.length
+        ? (
         <FlatList
           horizontal
           data={reviewsList}
@@ -121,83 +122,84 @@ function PlaceReviewsTab({ placeId }) {
               <View>
                 <Text>{item.content}</Text>
                 <StarRating enableHalfStar={false} rating={item.rating} />
-                <View style={{ justifyContent: "space-between" }}>
+                <View style={{ justifyContent: 'space-between' }}>
                   <Text>{item.profiles.email}</Text>
                   <Text>
-                    {DateTime.fromISO(item.created_at).toFormat("yyyy LLL dd")}
+                    {DateTime.fromISO(item.created_at).toFormat('yyyy LLL dd')}
                   </Text>
                 </View>
               </View>
-            );
+            )
           }}
           keyExtractor={(item) => item.id}
         />
-      ) : null}
+          )
+        : null}
     </SafeAreaView>
-  );
+  )
 }
 
-export default memo(PlaceReviewsTab);
+export default memo(PlaceReviewsTab)
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff8e7",
-    flex: 1,
+    backgroundColor: '#fff8e7',
+    flex: 1
   },
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   modalView: {
-    width: "70%",
-    backgroundColor: "white",
+    width: '70%',
+    backgroundColor: 'white',
     borderRadius: 20,
     padding: 14,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 2
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 5
   },
   inputWrapper: {
-    marginBottom: 16,
+    marginBottom: 16
   },
   inputLabel: {
-    marginBottom: 10,
+    marginBottom: 10
   },
   textarea: {
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
     borderWidth: 1,
     padding: 10,
-    height: 100,
+    height: 100
   },
   button: {
     borderRadius: 6,
     padding: 10,
-    shadowColor: "#412e00",
+    shadowColor: '#412e00',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 1
     },
     shadowOpacity: 0.2,
     shadowRadius: 1,
 
     elevation: 3,
-    borderColor: "#808080",
+    borderColor: '#808080',
     borderWidth: 1,
-    backgroundColor: "#e6edff",
+    backgroundColor: '#e6edff',
 
-    marginBottom: 20,
+    marginBottom: 20
   },
   textStyle: {
     fontSize: 14,
-    color: "#412e00",
-    fontWeight: "bold",
-    textAlign: "center",
-    textTransform: "uppercase",
-  },
-});
+    color: '#412e00',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textTransform: 'uppercase'
+  }
+})

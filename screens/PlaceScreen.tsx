@@ -1,11 +1,11 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 
-import PlaceDetailsTab from "./PlaceDetailsTab";
-import PlaceReviewsTab from "./PlaceReviewsTab";
+import PlaceDetailsTab from './PlaceDetailsTab'
+import PlaceReviewsTab from './PlaceReviewsTab'
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator()
 
-export default function PlaceScreen({ route }) {
+export default function PlaceScreen ({ route }) {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="Details">
@@ -19,5 +19,5 @@ export default function PlaceScreen({ route }) {
         )}
       </Tab.Screen>
     </Tab.Navigator>
-  );
+  )
 }

@@ -1,68 +1,68 @@
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query'
 
-import { supabase } from '../supabase';
-import { Place, Review } from '../types';
+import { supabase } from '../supabase'
+import { type Place, type Review } from '../types'
 
-export function useFetchPlaces() {
-  return useQuery<Array<Place>>('places', async (): Promise<Array<Place>> => {
-    const { data, error } = await supabase.rpc('get_places');
+export function useFetchPlaces () {
+  return useQuery<Place[]>('places', async (): Promise<Place[]> => {
+    const { data, error } = await supabase.rpc('get_places')
 
-    if (error) {
-      throw new Error(error.message);
+    if (error != null) {
+      throw new Error(error.message)
     }
-    return data;
-  });
+    return data
+  })
 }
 
-export function useCreatePlace() {
-  const queryClient = useQueryClient();
+export function useCreatePlace () {
+  const queryClient = useQueryClient()
 
   return useMutation<unknown, unknown, Place>(
     async (placeData) => {
-      const { error } = await supabase.from('places').insert(placeData);
+      const { error } = await supabase.from('places').insert(placeData)
 
-      if (error) {
-        throw new Error(error.message);
+      if (error != null) {
+        throw new Error(error.message)
       }
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries("places");
-      },
+        queryClient.invalidateQueries('places')
+      }
     }
-  );
+  )
 }
 
-export function useFetchReviews() {
-  return useQuery<Array<Review>>('reviews', async (): Promise<Array<Review>> => {
+export function useFetchReviews () {
+  return useQuery<Review[]>('reviews', async (): Promise<Review[]> => {
     const { data, error } = await supabase.from('reviews').select(`id,
     content,
     rating,
     place_id,
-    created_at, profiles ( email )`);
+    created_at, profiles ( email )`)
 
-    if (error) {
-      throw new Error(error.message);
+    if (error != null) {
+      throw new Error(error.message)
     }
-    return data;
-  });
+    return data
+  })
 }
 
-export function useCreateReview() {
-  const queryClient = useQueryClient();
+export function useCreateReview () {
+  const queryClient = useQueryClient()
 
   return useMutation<unknown, unknown, Review>(
     async (reviewData) => {
-      const { error } = await supabase.from('reviews').insert(reviewData);
+      const { error } = await supabase.from('reviews').insert(reviewData)
 
-      if (error) {
-        throw new Error(error.message);
+      if (error != null) {
+        throw new Error(error.message)
       }
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries("reviews");
-      },
+        queryClient.invalidateQueries('reviews')
+      }
     }
-  );
+  )
 }
