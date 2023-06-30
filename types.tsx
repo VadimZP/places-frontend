@@ -35,7 +35,7 @@ export interface Review {
   content: string
   rating: number
   place_id: number
-  author_id: number
+  author_id: string
   created_at: Date
   profiles: {
     email: string

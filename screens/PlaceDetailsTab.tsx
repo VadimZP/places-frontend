@@ -19,7 +19,6 @@ import Toast from 'react-native-root-toast'
 
 import { type Place, PlaceScreenProps } from '../types'
 import { supabase } from '../supabase'
-import { useCreateReview } from '../hooks/reactQuery'
 
 function PlaceDetailsTab ({ placeId }) {
   const queryClient: QueryClient = useQueryClient()
@@ -116,7 +115,7 @@ function PlaceDetailsTab ({ placeId }) {
 
         {isCameraComponentVisible && (
           <View style={{ flex: 1 }}>
-            {(permission == null)
+            {permission == null
               ? (
               <View>
                 <Text>Loading your camera...</Text>
@@ -144,20 +143,18 @@ function PlaceDetailsTab ({ placeId }) {
                 {isCameraReady && (
                   <Button
                     title="Take a photo"
-                    onPress={async () => {
-                      if ((cameraRef.current != null) && isCameraReady) {
-                        cameraRef.current
-                        const newPhoto =
-                          await cameraRef.current.takePictureAsync({
-                            base64: true
-                          })
+                    onPress={(async () => {
+                      if (cameraRef.current != null && isCameraReady) {
+                        const newPhoto = await cameraRef.current.takePictureAsync({
+                          base64: true
+                        })
                         setPhotos((prevPhotos) => [...prevPhotos, newPhoto])
                       }
-                    }}
+                    })()
+                  }
                   />
                 )}
-                {photos.length
-                  ? (
+                {photos.length > 0 && (
                   <>
                     <ScrollView
                       horizontal
@@ -180,26 +177,25 @@ function PlaceDetailsTab ({ placeId }) {
                       onPress={async () => {
                         setIsMediaLoading(true)
 
-                        const arrayOfPromises = photos.map(async (photo) =>
-                          await supabase.storage
-                            .from('places')
-                            .upload(
-                              `${placeId}/${photo.uri
-                                .split('/')
-                                .pop()}`,
-                              decode(photo.base64),
-                              {
-                                contentType: 'image/jpeg'
-                              }
-                            )
-                            .then((result) => {
-                              if (result.error != null) {
-                                throw new Error(result.error.message)
-                              }
-                            })
-                            .catch((error) => {
-                              return { error }
-                            })
+                        const arrayOfPromises = photos.map(
+                          async (photo) =>
+                            await supabase.storage
+                              .from('places')
+                              .upload(
+                                `${placeId}/${photo.uri.split('/').pop()}`,
+                                decode(photo.base64),
+                                {
+                                  contentType: 'image/jpeg'
+                                }
+                              )
+                              .then((result) => {
+                                if (result.error != null) {
+                                  throw new Error(result.error.message)
+                                }
+                              })
+                              .catch((error) => {
+                                return { error }
+                              })
                         )
                         try {
                           const result = await Promise.all(arrayOfPromises)
@@ -251,8 +247,7 @@ function PlaceDetailsTab ({ placeId }) {
                           )}
                     </Pressable>
                   </>
-                    )
-                  : null}
+                )}
               </View>
                     )}
           </View>

@@ -18,7 +18,7 @@ import { useCreateReview, useFetchReviews } from '../hooks/reactQuery'
 import { DateTime } from 'luxon'
 
 function PlaceReviewsTab ({ placeId }) {
-  const { data: reviewsList, isLoading, error } = useFetchReviews()
+  const { data: reviewsList } = useFetchReviews()
 
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [reviewContent, setReviewContent] = useState('')
@@ -33,7 +33,7 @@ function PlaceReviewsTab ({ placeId }) {
 
   return (
     <SafeAreaView style={styles.container}>
-         <Modal
+      <Modal
         animationType="slide"
         transparent={true}
         visible={isModalVisible}
@@ -112,8 +112,8 @@ function PlaceReviewsTab ({ placeId }) {
       <Pressable style={styles.button} onPress={createReview}>
         <Text style={styles.textStyle}>Write a review</Text>
       </Pressable>
-      {reviewsList?.length
-        ? (
+      {reviewsList != null && reviewsList.length > 0 &&
+        (
         <FlatList
           horizontal
           data={reviewsList}
@@ -121,7 +121,7 @@ function PlaceReviewsTab ({ placeId }) {
             return (
               <View>
                 <Text>{item.content}</Text>
-                <StarRating enableHalfStar={false} rating={item.rating} />
+                <StarRating enableHalfStar={false} rating={item.rating} onChange={() => {}}/>
                 <View style={{ justifyContent: 'space-between' }}>
                   <Text>{item.profiles.email}</Text>
                   <Text>
@@ -131,10 +131,9 @@ function PlaceReviewsTab ({ placeId }) {
               </View>
             )
           }}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => `${item.id}`}
         />
-          )
-        : null}
+        )}
     </SafeAreaView>
   )
 }

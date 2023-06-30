@@ -14,10 +14,16 @@ export function useFetchPlaces () {
   })
 }
 
+interface createPlacePayload {
+  name: string
+  content: string
+  location: string
+}
+
 export function useCreatePlace () {
   const queryClient = useQueryClient()
 
-  return useMutation<unknown, unknown, Place>(
+  return useMutation<unknown, unknown, createPlacePayload>(
     async (placeData) => {
       const { error } = await supabase.from('places').insert(placeData)
 
@@ -34,12 +40,13 @@ export function useCreatePlace () {
 }
 
 export function useFetchReviews () {
-  return useQuery<Review[]>('reviews', async (): Promise<Review[]> => {
+  return useQuery('reviews', async () => {
     const { data, error } = await supabase.from('reviews').select(`id,
     content,
     rating,
     place_id,
-    created_at, profiles ( email )`)
+    author_id,
+    created_at, profiles ( email )`).returns<Review[]>()
 
     if (error != null) {
       throw new Error(error.message)
