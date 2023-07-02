@@ -3,9 +3,7 @@
         "javascript",
         "javascriptreact",
         "typescript",
-        "typescriptreact"
-      ],
-      "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true,
-      },
+        "typescriptreact",
+    ],
+    "editor.formatOnSave": true,
 }

@@ -1,5 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { memo, useState } from 'react'
+import { memo, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -11,24 +10,28 @@ import {
   View,
   TextInput,
   FlatList
-} from 'react-native'
-import Toast from 'react-native-root-toast'
-import StarRating from 'react-native-star-rating-widget'
-import { useCreateReview, useFetchReviews } from '../hooks/reactQuery'
-import { DateTime } from 'luxon'
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-root-toast";
+import StarRating from "react-native-star-rating-widget";
+import { DateTime } from "luxon";
 
-function PlaceReviewsTab ({ placeId }) {
-  const { data: reviewsList } = useFetchReviews()
+import { type PlaceReviewsTabProps } from "../types";
+import { useCreateReview, useFetchReviews } from "../hooks/reactQuery";
 
-  const [isModalVisible, setIsModalVisible] = useState(false)
-  const [reviewContent, setReviewContent] = useState('')
+function PlaceReviewsTab(props: PlaceReviewsTabProps & { placeId: number }) {
+  const { placeId } = props;
+  const { data: reviewsList } = useFetchReviews();
 
-  const [rating, setRating] = useState(0)
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [reviewContent, setReviewContent] = useState("");
 
-  const mutation = useCreateReview()
+  const [rating, setRating] = useState(0);
 
-  function createReview () {
-    setIsModalVisible(true)
+  const mutation = useCreateReview();
+
+  function createReview() {
+    setIsModalVisible(true);
   }
 
   return (
@@ -38,12 +41,12 @@ function PlaceReviewsTab ({ placeId }) {
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => {
-          setIsModalVisible(!isModalVisible)
+          setIsModalVisible(!isModalVisible);
         }}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
@@ -68,30 +71,36 @@ function PlaceReviewsTab ({ placeId }) {
                 style={styles.button}
                 onPress={async () => {
                   try {
-                    const jsonValue = await AsyncStorage.getAllKeys()
-                    const kek = await AsyncStorage.getItem(jsonValue[0])
-                    const userId = JSON.parse(kek).user.id
+                    const jsonValue = await AsyncStorage.getAllKeys();
+                    const kek = await AsyncStorage.getItem(jsonValue[0]);
+                    if (kek != null) {
+                      const userId = JSON.parse(kek).user.id;
 
-                    mutation.mutate(
-                      {
-                        content: reviewContent,
-                        rating,
-                        place_id: placeId,
-                        author_id: userId
-                      },
-                      {
-                        onSuccess: () => {
-                          Toast.show('Thank you for the review!', {
-                            duration: Toast.durations.SHORT,
-                            position: 40
-                          })
+                      mutation.mutate(
+                        {
+                          content: reviewContent,
+                          rating,
+                          place_id: placeId,
+                          author_id: userId
+                        },
+                        {
+                          onSuccess: () => {
+                            Toast.show("Thank you for the review!", {
+                              duration: Toast.durations.SHORT,
+                              position: 40
+                            });
 
-                          setIsModalVisible(!isModalVisible)
+                            setIsModalVisible(!isModalVisible);
+                          }
                         }
-                      }
-                    )
-                  } catch (e) {
-                    // error reading value
+                      );
+                    } else {
+                      throw new Error("Something went wrong");
+                    }
+                  } catch (error) {
+                    if (error instanceof Error) {
+                      throw new Error(error.message);
+                    }
                   }
                 }}
               >
@@ -100,7 +109,7 @@ function PlaceReviewsTab ({ placeId }) {
               <Pressable
                 style={styles.button}
                 onPress={() => {
-                  setIsModalVisible(!isModalVisible)
+                  setIsModalVisible(!isModalVisible);
                 }}
               >
                 <Text style={styles.textStyle}>No</Text>
@@ -112,8 +121,7 @@ function PlaceReviewsTab ({ placeId }) {
       <Pressable style={styles.button} onPress={createReview}>
         <Text style={styles.textStyle}>Write a review</Text>
       </Pressable>
-      {reviewsList != null && reviewsList.length > 0 &&
-        (
+      {reviewsList != null && reviewsList.length > 0 && (
         <FlatList
           horizontal
           data={reviewsList}
@@ -121,41 +129,45 @@ function PlaceReviewsTab ({ placeId }) {
             return (
               <View>
                 <Text>{item.content}</Text>
-                <StarRating enableHalfStar={false} rating={item.rating} onChange={() => {}}/>
-                <View style={{ justifyContent: 'space-between' }}>
+                <StarRating
+                  enableHalfStar={false}
+                  rating={item.rating}
+                  onChange={() => {}}
+                />
+                <View style={{ justifyContent: "space-between" }}>
                   <Text>{item.profiles.email}</Text>
                   <Text>
-                    {DateTime.fromISO(item.created_at).toFormat('yyyy LLL dd')}
+                    {DateTime.fromISO(item.created_at).toFormat("yyyy LLL dd")}
                   </Text>
                 </View>
               </View>
-            )
+            );
           }}
           keyExtractor={(item) => `${item.id}`}
         />
-        )}
+      )}
     </SafeAreaView>
-  )
+  );
 }
 
-export default memo(PlaceReviewsTab)
+export default memo(PlaceReviewsTab);
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff8e7',
+    backgroundColor: "#fff8e7",
     flex: 1
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center"
   },
   modalView: {
-    width: '70%',
-    backgroundColor: 'white',
+    width: "70%",
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 14,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2
@@ -171,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   textarea: {
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     borderWidth: 1,
     padding: 10,
     height: 100
@@ -179,7 +191,7 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 6,
     padding: 10,
-    shadowColor: '#412e00',
+    shadowColor: "#412e00",
     shadowOffset: {
       width: 0,
       height: 1
@@ -188,17 +200,17 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
 
     elevation: 3,
-    borderColor: '#808080',
+    borderColor: "#808080",
     borderWidth: 1,
-    backgroundColor: '#e6edff',
+    backgroundColor: "#e6edff",
 
     marginBottom: 20
   },
   textStyle: {
     fontSize: 14,
-    color: '#412e00',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    textTransform: 'uppercase'
+    color: "#412e00",
+    fontWeight: "bold",
+    textAlign: "center",
+    textTransform: "uppercase"
   }
-})
+});

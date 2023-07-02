@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { supabase } from '../supabase'
 import { type Place, type Review } from '../types'
 
-export function useFetchPlaces () {
+export function useFetchPlaces() {
   return useQuery<Place[]>('places', async (): Promise<Place[]> => {
     const { data, error } = await supabase.rpc('get_places')
 
@@ -20,7 +20,7 @@ interface createPlacePayload {
   location: string
 }
 
-export function useCreatePlace () {
+export function useCreatePlace() {
   const queryClient = useQueryClient()
 
   return useMutation<unknown, unknown, createPlacePayload>(
@@ -33,13 +33,13 @@ export function useCreatePlace () {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('places')
+        void queryClient.invalidateQueries('places')
       }
     }
   )
 }
 
-export function useFetchReviews () {
+export function useFetchReviews() {
   return useQuery('reviews', async () => {
     const { data, error } = await supabase.from('reviews').select(`id,
     content,
@@ -55,10 +55,17 @@ export function useFetchReviews () {
   })
 }
 
-export function useCreateReview () {
+interface createReviewPayload {
+  content: string,
+  rating: number
+  place_id: number,
+  author_id: number
+}
+
+export function useCreateReview() {
   const queryClient = useQueryClient()
 
-  return useMutation<unknown, unknown, Review>(
+  return useMutation<unknown, unknown, createReviewPayload>(
     async (reviewData) => {
       const { error } = await supabase.from('reviews').insert(reviewData)
 
@@ -68,7 +75,7 @@ export function useCreateReview () {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('reviews')
+        void queryClient.invalidateQueries('reviews')
       }
     }
   )

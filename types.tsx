@@ -1,43 +1,63 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { SupabaseClient } from '@supabase/supabase-js'
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
-export interface RootStackParamList {
-  Auth: undefined
-  Home: undefined
-  PlaceDetails: { placeId: number }
-}
+// react-native-navigation documentation states "The type containing the mappings must be a type alias" https://reactnavigation.org/docs/typescript/#type-checking-the-navigator
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RootStackParamList = {
+  Auth: undefined;
+  Home: undefined;
+  Place: { placeId: number };
+};
 
 export type AuthScreenProps = NativeStackScreenProps<
-RootStackParamList,
-'Auth'
->
+  RootStackParamList,
+  "Auth"
+>;
 
 export type HomeScreenProps = NativeStackScreenProps<
-RootStackParamList,
-'Home'
->
+  RootStackParamList,
+  "Home"
+>;
+
+export type HomeScreenNavigationProp = HomeScreenProps["navigation"];
 
 export type PlaceScreenProps = NativeStackScreenProps<
-RootStackParamList,
-'PlaceDetails'
->
+  RootStackParamList,
+  "Place"
+>;
+
+// react-native-navigation documentation states "The type containing the mappings must be a type alias" https://reactnavigation.org/docs/typescript/#type-checking-the-navigator
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type BottomTabParamList = {
+  PlaceDetails: undefined;
+  PlaceReviews: undefined;
+};
+
+export type PlaceDetailsTabProps = BottomTabScreenProps<
+  BottomTabParamList,
+  "PlaceDetails"
+>;
+export type PlaceReviewsTabProps = BottomTabScreenProps<
+  BottomTabParamList,
+  "PlaceReviews"
+>;
 
 export interface Place {
-  id: number
-  name: string
-  content?: string
-  location: string
-  created_at: Date
+  id: number;
+  name: string;
+  content?: string;
+  location: string;
+  created_at: string;
 }
 
 export interface Review {
-  id: number
-  content: string
-  rating: number
-  place_id: number
-  author_id: string
-  created_at: Date
+  id: number;
+  content: string;
+  rating: number;
+  place_id: number;
+  author_id: string;
+  created_at: string;
   profiles: {
-    email: string
-  }
+    email: string;
+  };
 }

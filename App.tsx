@@ -1,75 +1,75 @@
-import { Text, SafeAreaView, StyleSheet } from 'react-native'
-import { useState, useEffect } from 'react'
-import { QueryClient, QueryClientProvider } from 'react-query'
-import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { type Session } from '@supabase/supabase-js'
+import { Text, SafeAreaView, StyleSheet } from "react-native";
+import { useState, useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { type Session } from "@supabase/supabase-js";
 
-import { supabase } from './supabase'
-import { type RootStackParamList } from './types'
-import AuthScreen from './screens/AuthScreen'
-import PlaceScreen from './screens/PlaceScreen'
-import HomeScreen from './screens/HomeScreen'
+import { supabase } from "./supabase";
+import { type RootStackParamList } from "./types";
+import AuthScreen from "./screens/AuthScreen";
+import PlaceScreen from "./screens/PlaceScreen";
+import HomeScreen from "./screens/HomeScreen";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
-const Stack = createNativeStackNavigator<RootStackParamList>()
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App () {
-  const [session, setSession] = useState<Session | null>(null)
-  const [isCheckingCredentials, setIsCheckingCredentials] = useState(false)
+export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [isCheckingCredentials, setIsCheckingCredentials] = useState(false);
 
   useEffect(() => {
-    setIsCheckingCredentials(true)
+    setIsCheckingCredentials(true);
+
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
-        setSession(session)
+        setSession(session);
       })
       .finally(() => {
-        setIsCheckingCredentials(false)
-      })
+        setIsCheckingCredentials(false);
+      });
 
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      // AsyncStorage.clear()
-    })
+      setSession(session);
+    });
 
-    return () => { subscription.unsubscribe() }
-  }, [])
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   if (isCheckingCredentials) {
     return (
       <SafeAreaView style={styles.container}>
         <Text>Loading the app...</Text>
       </SafeAreaView>
-    )
+    );
   }
 
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
         <Stack.Navigator>
-          {(session == null)
-            ? (
+          {session == null ? (
             <Stack.Screen name="Auth" component={AuthScreen} />
-              )
-            : (
+          ) : (
             <>
               <Stack.Screen name="Home" component={HomeScreen} />
               <Stack.Screen name="Place" component={PlaceScreen} />
             </>
-              )}
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </QueryClientProvider>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1
   }
-})
+});
