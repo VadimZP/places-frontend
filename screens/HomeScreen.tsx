@@ -51,7 +51,7 @@ function ModalStep1({
         <Pressable
           style={styles.button}
           onPress={() => {
-            setIsModalVisible(!isModalVisible);
+            setIsModalVisible(false);
           }}
         >
           <Text style={styles.textStyle}>No</Text>
@@ -133,7 +133,7 @@ function ModalStep2({
                   setPlaceName("");
                   setPlaceContent("");
 
-                  setIsModalVisible(!isModalVisible);
+                  setIsModalVisible(false);
                 }
               }
             );
@@ -147,7 +147,7 @@ function ModalStep2({
             setModalStep(1);
             setPlaceName("");
             setPlaceContent("");
-            setIsModalVisible(!isModalVisible);
+            setIsModalVisible(false);
           }}
         >
           <Text style={styles.textStyle}>Cancel</Text>
@@ -182,7 +182,7 @@ function ModalStep3({
           style={styles.button}
           onPress={() => {
             setModalStep(1);
-            setIsModalVisible(!isModalVisible);
+            setIsModalVisible(false);
             if (selectedPlaceId !== null) {
               navigation.navigate("Place", {
                 placeId: selectedPlaceId
@@ -196,7 +196,7 @@ function ModalStep3({
           style={styles.button}
           onPress={() => {
             setModalStep(1);
-            setIsModalVisible(!isModalVisible);
+            setIsModalVisible(false);
             setSelectedPlaceId(null);
           }}
         >
@@ -320,7 +320,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => {
-          setIsModalVisible(!isModalVisible);
+          setIsModalVisible(false);
         }}
       >
         <KeyboardAvoidingView

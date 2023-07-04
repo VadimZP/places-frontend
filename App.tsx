@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Entypo } from "@expo/vector-icons";
 import { type Session } from "@supabase/supabase-js";
 
 import { supabase } from "./supabase";
@@ -59,7 +60,19 @@ export default function App() {
           ) : (
             <>
               <Stack.Screen name="Home" component={HomeScreen} />
-              <Stack.Screen name="Place" component={PlaceScreen} />
+              <Stack.Screen
+                name="Place"
+                component={PlaceScreen}
+                options={{
+                  headerRight: () => (
+                    <Entypo.Button
+                      name="dots-three-vertical"
+                      size={24}
+                      color="black"
+                    />
+                  )
+                }}
+              />
             </>
           )}
         </Stack.Navigator>

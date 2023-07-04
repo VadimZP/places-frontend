@@ -10,17 +10,32 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  FlatList
+  FlatList,
+  Alert,
+  Modal
 } from "react-native";
 import { type QueryClient, useQueryClient } from "react-query";
 import { decode } from "base64-arraybuffer";
 import Toast from "react-native-root-toast";
+import {
+  Menu,
+  MenuProvider,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger
+} from "react-native-popup-menu";
+import { Entypo } from "@expo/vector-icons";
 
-import { type PlaceDetailsTabProps, type Place } from "../types";
+import type { PlaceDetailsTabProps, Place, PlaceScreenProps } from "../types";
 import { supabase } from "../supabase";
 
-function PlaceDetailsTab(props: PlaceDetailsTabProps & { placeId: number }) {
-  const { placeId } = props;
+function PlaceDetailsTab(
+  props: PlaceDetailsTabProps & {
+    placeId: number;
+    placeScreenNavigation: PlaceScreenProps["navigation"];
+  }
+) {
+  const { placeId, placeScreenNavigation } = props;
 
   const queryClient: QueryClient = useQueryClient();
 
@@ -73,7 +88,7 @@ function PlaceDetailsTab(props: PlaceDetailsTabProps & { placeId: number }) {
     }
 
     void fetchImagesFromFolder();
-  });
+  }, []);
 
   async function takeAPhoto() {
     if (cameraRef.current != null && isCameraReady) {
@@ -131,21 +146,149 @@ function PlaceDetailsTab(props: PlaceDetailsTabProps & { placeId: number }) {
     }
   }
 
+  const [selectedOption, setSelectedOption] = useState(0);
+
+  const menuElem = useRef();
+
+  useEffect(() => {
+    // Use `setOptions` to update the button that we previously specified
+    // Now the button includes an `onPress` handler to update the count
+    placeScreenNavigation.setOptions({
+      headerRight: () => (
+        <Entypo
+          onPress={() => {
+            menuElem.current.open();
+          }}
+          name="dots-three-vertical"
+          size={24}
+          color="black"
+        />
+      )
+    });
+  }, [placeScreenNavigation]);
+
+  function onOptionSelect(value) {
+    if (value === 1) {
+      setIsModalVisible(true);
+    }
+  }
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        animationType="slide"
+        visible={isModalVisible}
+        onShow={() => {
+          setIsCameraComponentVisible(true);
+        }}
+        onRequestClose={() => {
+          setIsModalVisible(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Hello World!</Text>
+            {isCameraComponentVisible && (
+              <View style={{ flex: 1 }}>
+                {permission == null ? (
+                  <View>
+                    <Text>Loading your camera...</Text>
+                  </View>
+                ) : !permission?.granted ? (
+                  <View>
+                    <Text>
+                      We need your permission to show the camera. Try again
+                    </Text>
+                    <Button
+                      onPress={requestPermission}
+                      title="Grant Permission"
+                    />
+                  </View>
+                ) : (
+                  <View style={{ flex: 1 }}>
+                    <Camera
+                      style={{ width: "100%", height: 350 }}
+                      type={type}
+                      ref={cameraRef}
+                      onCameraReady={() => {
+                        setIsCameraReady(true);
+                      }}
+                    />
+                    {isCameraReady && (
+                      <Button title="Take a photo" onPress={takeAPhoto} />
+                    )}
+                    {photos.length > 0 && (
+                      <>
+                        <ScrollView
+                          horizontal
+                          contentContainerStyle={{
+                            paddingTop: 12
+                          }}
+                        >
+                          {photos.map((photo) => {
+                            return (
+                              <Image
+                                key={photo.uri}
+                                source={{ uri: photo.uri }}
+                                style={{
+                                  width: 100,
+                                  height: 100,
+                                  marginRight: 10
+                                }}
+                              />
+                            );
+                          })}
+                        </ScrollView>
+                        <Pressable
+                          style={styles.button}
+                          onPress={uploadNewPhotos}
+                        >
+                          {isMediaLoading ? (
+                            <ActivityIndicator size="large" color="#0000ff" />
+                          ) : (
+                            <Text style={styles.textStyle}>Upload photos</Text>
+                          )}
+                        </Pressable>
+                      </>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
+            <Pressable
+              style={[styles.button]}
+              onPress={() => {
+                setIsModalVisible(false);
+              }}
+            >
+              <Text style={styles.textStyle}>Hide Modal</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.wrapper}>
+        <MenuProvider style={{ flexDirection: "column" }}>
+          <Menu
+            ref={menuElem}
+            onSelect={(value) => {
+              onOptionSelect(value);
+            }}
+          >
+            <MenuTrigger text="Select option" style={{ display: "none" }} />
+            <MenuOptions>
+              <MenuOption value={1} text="Add photos" />
+              <MenuOption value={2}>
+                <Text style={{ color: "red" }}>Edit place</Text>
+              </MenuOption>
+              <MenuOption value={3} disabled={true} text="Delete place" />
+            </MenuOptions>
+          </Menu>
+        </MenuProvider>
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.name}>{place?.name}</Text>
           <Text style={styles.content}>{place?.content}</Text>
         </View>
-        <Pressable
-          style={styles.button}
-          onPress={() => {
-            setIsCameraComponentVisible(true);
-          }}
-        >
-          <Text style={styles.textStyle}>Add photos</Text>
-        </Pressable>
 
         {placePhotos.length > 0 && (
           <FlatList
@@ -160,64 +303,6 @@ function PlaceDetailsTab(props: PlaceDetailsTabProps & { placeId: number }) {
             )}
             keyExtractor={(item) => item.id}
           />
-        )}
-
-        {isCameraComponentVisible && (
-          <View style={{ flex: 1 }}>
-            {permission == null ? (
-              <View>
-                <Text>Loading your camera...</Text>
-              </View>
-            ) : !permission?.granted ? (
-              <View>
-                <Text>
-                  We need your permission to show the camera. Try again
-                </Text>
-                <Button onPress={requestPermission} title="Grant Permission" />
-              </View>
-            ) : (
-              <View style={{ flex: 1 }}>
-                <Camera
-                  style={{ width: "100%", height: 350 }}
-                  type={type}
-                  ref={cameraRef}
-                  onCameraReady={() => {
-                    setIsCameraReady(true);
-                  }}
-                />
-                {isCameraReady && (
-                  <Button title="Take a photo" onPress={takeAPhoto} />
-                )}
-                {photos.length > 0 && (
-                  <>
-                    <ScrollView
-                      horizontal
-                      contentContainerStyle={{
-                        paddingTop: 12
-                      }}
-                    >
-                      {photos.map((photo) => {
-                        return (
-                          <Image
-                            key={photo.uri}
-                            source={{ uri: photo.uri }}
-                            style={{ width: 100, height: 100, marginRight: 10 }}
-                          />
-                        );
-                      })}
-                    </ScrollView>
-                    <Pressable style={styles.button} onPress={uploadNewPhotos}>
-                      {isMediaLoading ? (
-                        <ActivityIndicator size="large" color="#0000ff" />
-                      ) : (
-                        <Text style={styles.textStyle}>Upload photos</Text>
-                      )}
-                    </Pressable>
-                  </>
-                )}
-              </View>
-            )}
-          </View>
         )}
       </View>
     </SafeAreaView>
@@ -278,5 +363,32 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     textTransform: "uppercase"
+  },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
   }
 });

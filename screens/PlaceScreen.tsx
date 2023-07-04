@@ -6,12 +6,19 @@ import { type BottomTabParamList, type PlaceScreenProps } from "../types";
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-export default function PlaceScreen({ route }: PlaceScreenProps) {
+export default function PlaceScreen({
+  route,
+  navigation: placeScreenNavigation
+}: PlaceScreenProps) {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="PlaceDetails">
         {(props) => (
-          <PlaceDetailsTab {...props} placeId={route.params.placeId} />
+          <PlaceDetailsTab
+            {...props}
+            placeScreenNavigation={placeScreenNavigation}
+            placeId={route.params.placeId}
+          />
         )}
       </Tab.Screen>
       <Tab.Screen name="PlaceReviews">
