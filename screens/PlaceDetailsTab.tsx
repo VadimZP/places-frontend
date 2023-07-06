@@ -11,7 +11,6 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-  Alert,
   Modal
 } from "react-native";
 import { type QueryClient, useQueryClient } from "react-query";
@@ -28,6 +27,7 @@ import { Entypo } from "@expo/vector-icons";
 
 import type { PlaceDetailsTabProps, Place, PlaceScreenProps } from "../types";
 import { supabase } from "../supabase";
+import PopupMenu from "../components/PopupMenu";
 
 function PlaceDetailsTab(
   props: PlaceDetailsTabProps & {
@@ -99,6 +99,12 @@ function PlaceDetailsTab(
     }
   }
 
+  function removePhoto(photo) {
+    setPhotos((prevPhotos) =>
+      prevPhotos.filter((item) => item.uri !== photo.uri)
+    );
+  }
+
   async function uploadNewPhotos() {
     setIsMediaLoading(true);
 
@@ -114,14 +120,7 @@ function PlaceDetailsTab(
         if (error != null) {
           let errorMessage;
 
-          if (
-            error !== null &&
-            typeof error === "object" &&
-            "message" in error &&
-            typeof error.message === "string"
-          ) {
-            errorMessage = error.message;
-          } else if (typeof error === "string") {
+          if (typeof error === "string") {
             errorMessage = error;
           } else {
             errorMessage = "An unknown error occurred";
@@ -147,17 +146,14 @@ function PlaceDetailsTab(
   }
 
   const [selectedOption, setSelectedOption] = useState(0);
-
-  const menuElem = useRef();
+  const [isPopupMenuVisible, setIsPopupMenuVisible] = useState(false);
 
   useEffect(() => {
-    // Use `setOptions` to update the button that we previously specified
-    // Now the button includes an `onPress` handler to update the count
     placeScreenNavigation.setOptions({
       headerRight: () => (
         <Entypo
           onPress={() => {
-            menuElem.current.open();
+            setIsPopupMenuVisible((prev) => !prev);
           }}
           name="dots-three-vertical"
           size={24}
@@ -167,15 +163,23 @@ function PlaceDetailsTab(
     });
   }, [placeScreenNavigation]);
 
-  function onOptionSelect(value) {
-    if (value === 1) {
-      setIsModalVisible(true);
-    }
-  }
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const menuItems = [
+    {
+      name: "Add photos",
+      onPress: () => {
+        setIsModalVisible(!isModalVisible);
+      }
+    },
+    { name: "Edit place", onPress: () => {} },
+    { name: "Delete place", onPress: () => {} }
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
+      {isPopupMenuVisible && <PopupMenu menuItems={menuItems} />}
+
       <Modal
         animationType="slide"
         visible={isModalVisible}
@@ -186,9 +190,8 @@ function PlaceDetailsTab(
           setIsModalVisible(false);
         }}
       >
-        <View style={styles.centeredView}>
+        <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Hello World!</Text>
             {isCameraComponentVisible && (
               <View style={{ flex: 1 }}>
                 {permission == null ? (
@@ -208,83 +211,129 @@ function PlaceDetailsTab(
                 ) : (
                   <View style={{ flex: 1 }}>
                     <Camera
-                      style={{ width: "100%", height: 350 }}
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center"
+                      }}
                       type={type}
                       ref={cameraRef}
                       onCameraReady={() => {
                         setIsCameraReady(true);
                       }}
-                    />
-                    {isCameraReady && (
-                      <Button title="Take a photo" onPress={takeAPhoto} />
-                    )}
+                    >
+                      {isCameraReady && (
+                        <Pressable
+                          style={{
+                            backgroundColor: "#fff",
+                            borderRadius: 50,
+                            width: 60,
+                            height: 60,
+                            position: "absolute",
+                            bottom: 160
+                          }}
+                          onPress={takeAPhoto}
+                        />
+                      )}
+                    </Camera>
+
                     {photos.length > 0 && (
-                      <>
+                      <View
+                        style={{
+                          backgroundColor: "#fff",
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          width: "100%"
+                        }}
+                      >
                         <ScrollView
                           horizontal
                           contentContainerStyle={{
-                            paddingTop: 12
+                            padding: 10
                           }}
                         >
                           {photos.map((photo) => {
                             return (
-                              <Image
+                              <View
                                 key={photo.uri}
-                                source={{ uri: photo.uri }}
                                 style={{
+                                  position: "relative",
+                                  marginRight: 16,
+                                  borderWidth: 4,
+                                  borderRadius: 6,
                                   width: 100,
-                                  height: 100,
-                                  marginRight: 10
+                                  height: 100
                                 }}
-                              />
+                              >
+                                <Pressable
+                                  style={{
+                                    position: "absolute",
+                                    right: -10,
+                                    top: -10,
+                                    backgroundColor: "red",
+                                    borderRadius: 50,
+                                    borderWidth: 4,
+                                    width: 26,
+                                    height: 26,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    zIndex: 2
+                                  }}
+                                  onPress={() => removePhoto(photo)}
+                                >
+                                  <Text style={{ fontWeight: "bold" }}>X</Text>
+                                </Pressable>
+                                <Image
+                                  source={{ uri: photo.uri }}
+                                  style={{
+                                    flex: 1
+                                  }}
+                                />
+                              </View>
                             );
                           })}
                         </ScrollView>
-                        <Pressable
-                          style={styles.button}
-                          onPress={uploadNewPhotos}
-                        >
-                          {isMediaLoading ? (
-                            <ActivityIndicator size="large" color="#0000ff" />
-                          ) : (
-                            <Text style={styles.textStyle}>Upload photos</Text>
-                          )}
-                        </Pressable>
-                      </>
+                        {/* <Pressable
+                        style={styles.button}
+                        onPress={uploadNewPhotos}
+                      >
+                        {isMediaLoading ? (
+                          <ActivityIndicator size="large" color="#0000ff" />
+                        ) : (
+                          <Text style={styles.textStyle}>Upload photos</Text>
+                        )}
+                      </Pressable> */}
+                      </View>
                     )}
                   </View>
                 )}
               </View>
             )}
+
             <Pressable
-              style={[styles.button]}
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 6,
+                width: 30,
+                height: 30,
+                position: "absolute",
+                top: 80,
+                right: 40,
+                justifyContent: "center",
+                alignItems: "center"
+              }}
               onPress={() => {
                 setIsModalVisible(false);
               }}
             >
-              <Text style={styles.textStyle}>Hide Modal</Text>
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>X</Text>
             </Pressable>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
+
       <View style={styles.wrapper}>
-        <MenuProvider style={{ flexDirection: "column" }}>
-          <Menu
-            ref={menuElem}
-            onSelect={(value) => {
-              onOptionSelect(value);
-            }}
-          >
-            <MenuTrigger text="Select option" style={{ display: "none" }} />
-            <MenuOptions>
-              <MenuOption value={1} text="Add photos" />
-              <MenuOption value={2}>
-                <Text style={{ color: "red" }}>Edit place</Text>
-              </MenuOption>
-              <MenuOption value={3} disabled={true} text="Delete place" />
-            </MenuOptions>
-          </Menu>
-        </MenuProvider>
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.name}>{place?.name}</Text>
           <Text style={styles.content}>{place?.content}</Text>
@@ -365,26 +414,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase"
   },
 
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
-  },
   modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
+    flex: 1
   },
 
   modalText: {
