@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import PlaceDetailsTab from "./PlaceDetailsTab";
 import PlaceReviewsTab from "./PlaceReviewsTab";
-import { type BottomTabParamList, type PlaceScreenProps } from "../types";
+import type { BottomTabParamList, PlaceScreenProps } from "../types";
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -12,7 +12,7 @@ export default function PlaceScreen({
 }: PlaceScreenProps) {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="PlaceDetails">
+      <Tab.Screen name="Details">
         {(props) => (
           <PlaceDetailsTab
             {...props}
@@ -21,7 +21,7 @@ export default function PlaceScreen({
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="PlaceReviews">
+      <Tab.Screen name="Reviews">
         {(props) => (
           <PlaceReviewsTab {...props} placeId={route.params.placeId} />
         )}

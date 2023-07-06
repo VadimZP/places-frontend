@@ -11,7 +11,6 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-  Alert,
   Modal
 } from "react-native";
 import { type QueryClient, useQueryClient } from "react-query";
@@ -28,6 +27,7 @@ import { Entypo } from "@expo/vector-icons";
 
 import type { PlaceDetailsTabProps, Place, PlaceScreenProps } from "../types";
 import { supabase } from "../supabase";
+import PopupMenu from "../components/PopupMenu";
 
 function PlaceDetailsTab(
   props: PlaceDetailsTabProps & {
@@ -114,14 +114,7 @@ function PlaceDetailsTab(
         if (error != null) {
           let errorMessage;
 
-          if (
-            error !== null &&
-            typeof error === "object" &&
-            "message" in error &&
-            typeof error.message === "string"
-          ) {
-            errorMessage = error.message;
-          } else if (typeof error === "string") {
+          if (typeof error === "string") {
             errorMessage = error;
           } else {
             errorMessage = "An unknown error occurred";
@@ -147,17 +140,14 @@ function PlaceDetailsTab(
   }
 
   const [selectedOption, setSelectedOption] = useState(0);
-
-  const menuElem = useRef();
+  const [isPopupMenuVisible, setIsPopupMenuVisible] = useState(false);
 
   useEffect(() => {
-    // Use `setOptions` to update the button that we previously specified
-    // Now the button includes an `onPress` handler to update the count
     placeScreenNavigation.setOptions({
       headerRight: () => (
         <Entypo
           onPress={() => {
-            menuElem.current.open();
+            setIsPopupMenuVisible((prev) => !prev);
           }}
           name="dots-three-vertical"
           size={24}
@@ -167,15 +157,23 @@ function PlaceDetailsTab(
     });
   }, [placeScreenNavigation]);
 
-  function onOptionSelect(value) {
-    if (value === 1) {
-      setIsModalVisible(true);
-    }
-  }
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const menuItems = [
+    {
+      name: "Add photos",
+      onPress: () => {
+        setIsModalVisible(!isModalVisible);
+      }
+    },
+    { name: "Edit place", onPress: () => {} },
+    { name: "Delete place", onPress: () => {} }
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
+      {isPopupMenuVisible && <PopupMenu menuItems={menuItems} />}
+
       <Modal
         animationType="slide"
         visible={isModalVisible}
@@ -186,105 +184,126 @@ function PlaceDetailsTab(
           setIsModalVisible(false);
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Hello World!</Text>
-            {isCameraComponentVisible && (
-              <View style={{ flex: 1 }}>
-                {permission == null ? (
-                  <View>
-                    <Text>Loading your camera...</Text>
-                  </View>
-                ) : !permission?.granted ? (
-                  <View>
-                    <Text>
-                      We need your permission to show the camera. Try again
-                    </Text>
-                    <Button
-                      onPress={requestPermission}
-                      title="Grant Permission"
-                    />
-                  </View>
-                ) : (
-                  <View style={{ flex: 1 }}>
-                    <Camera
-                      style={{ width: "100%", height: 350 }}
-                      type={type}
-                      ref={cameraRef}
-                      onCameraReady={() => {
-                        setIsCameraReady(true);
-                      }}
-                    />
+        {/* <View style={styles.centeredView}> */}
+        <View style={styles.modalView}>
+          {isCameraComponentVisible && (
+            <View style={{ flex: 1 }}>
+              {permission == null ? (
+                <View>
+                  <Text>Loading your camera...</Text>
+                </View>
+              ) : !permission?.granted ? (
+                <View>
+                  <Text>
+                    We need your permission to show the camera. Try again
+                  </Text>
+                  <Button
+                    onPress={requestPermission}
+                    title="Grant Permission"
+                  />
+                </View>
+              ) : (
+                <View style={{ flex: 1 }}>
+                  <Camera
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                    type={type}
+                    ref={cameraRef}
+                    onCameraReady={() => {
+                      setIsCameraReady(true);
+                    }}
+                  >
                     {isCameraReady && (
-                      <Button title="Take a photo" onPress={takeAPhoto} />
+                      <Pressable
+                        style={{
+                          backgroundColor: "#fff",
+                          borderRadius: 50,
+                          width: 30,
+                          height: 30,
+                          position: "absolute",
+                          bottom: 160
+                        }}
+                        onPress={takeAPhoto}
+                      />
                     )}
-                    {photos.length > 0 && (
-                      <>
-                        <ScrollView
-                          horizontal
-                          contentContainerStyle={{
-                            paddingTop: 12
-                          }}
-                        >
-                          {photos.map((photo) => {
-                            return (
-                              <Image
-                                key={photo.uri}
-                                source={{ uri: photo.uri }}
-                                style={{
-                                  width: 100,
-                                  height: 100,
-                                  marginRight: 10
-                                }}
-                              />
-                            );
-                          })}
-                        </ScrollView>
-                        <Pressable
-                          style={styles.button}
-                          onPress={uploadNewPhotos}
-                        >
-                          {isMediaLoading ? (
-                            <ActivityIndicator size="large" color="#0000ff" />
-                          ) : (
-                            <Text style={styles.textStyle}>Upload photos</Text>
-                          )}
-                        </Pressable>
-                      </>
-                    )}
-                  </View>
-                )}
-              </View>
-            )}
-            <Pressable
-              style={[styles.button]}
-              onPress={() => {
-                setIsModalVisible(false);
-              }}
-            >
-              <Text style={styles.textStyle}>Hide Modal</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-      <View style={styles.wrapper}>
-        <MenuProvider style={{ flexDirection: "column" }}>
-          <Menu
-            ref={menuElem}
-            onSelect={(value) => {
-              onOptionSelect(value);
+                  </Camera>
+
+                  {photos.length > 0 && (
+                    <View
+                      style={{
+                        backgroundColor: "#fff",
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        width: "100%"
+                      }}
+                    >
+                      <ScrollView
+                        horizontal
+                        contentContainerStyle={{
+                          // backgroundColor: "red",
+                          // position: "absolute",
+                          // bottom: 0,
+                          // left: 0,
+                          // width: "100%",
+                          paddingTop: 12,
+                          paddingBottom: 12
+                        }}
+                      >
+                        {photos.map((photo) => {
+                          return (
+                            <Image
+                              key={photo.uri}
+                              source={{ uri: photo.uri }}
+                              style={{
+                                width: 100,
+                                height: 100,
+                                marginRight: 10
+                              }}
+                            />
+                          );
+                        })}
+                      </ScrollView>
+                      {/* <Pressable
+                        style={styles.button}
+                        onPress={uploadNewPhotos}
+                      >
+                        {isMediaLoading ? (
+                          <ActivityIndicator size="large" color="#0000ff" />
+                        ) : (
+                          <Text style={styles.textStyle}>Upload photos</Text>
+                        )}
+                      </Pressable> */}
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+          <Pressable
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 6,
+              width: 30,
+              height: 30,
+              position: "absolute",
+              top: 80,
+              right: 40
+            }}
+            onPress={() => {
+              setIsModalVisible(false);
             }}
           >
-            <MenuTrigger text="Select option" style={{ display: "none" }} />
-            <MenuOptions>
-              <MenuOption value={1} text="Add photos" />
-              <MenuOption value={2}>
-                <Text style={{ color: "red" }}>Edit place</Text>
-              </MenuOption>
-              <MenuOption value={3} disabled={true} text="Delete place" />
-            </MenuOptions>
-          </Menu>
-        </MenuProvider>
+            <Text style={{ color: "#000" }}>X</Text>
+          </Pressable>
+        </View>
+        {/* </View> */}
+      </Modal>
+
+      <View style={styles.wrapper}>
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.name}>{place?.name}</Text>
           <Text style={styles.content}>{place?.content}</Text>
@@ -365,26 +384,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase"
   },
 
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
-  },
   modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
+    flex: 1
   },
 
   modalText: {

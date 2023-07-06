@@ -29,17 +29,17 @@ export type PlaceScreenProps = NativeStackScreenProps<
 // react-native-navigation documentation states "The type containing the mappings must be a type alias" https://reactnavigation.org/docs/typescript/#type-checking-the-navigator
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BottomTabParamList = {
-  PlaceDetails: undefined;
-  PlaceReviews: undefined;
+  Details: undefined;
+  Reviews: undefined;
 };
 
 export type PlaceDetailsTabProps = BottomTabScreenProps<
   BottomTabParamList,
-  "PlaceDetails"
+  "Details"
 >;
 export type PlaceReviewsTabProps = BottomTabScreenProps<
   BottomTabParamList,
-  "PlaceReviews"
+  "Reviews"
 >;
 
 export interface Place {
