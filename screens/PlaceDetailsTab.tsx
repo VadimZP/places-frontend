@@ -16,13 +16,7 @@ import {
 import { type QueryClient, useQueryClient } from "react-query";
 import { decode } from "base64-arraybuffer";
 import Toast from "react-native-root-toast";
-import {
-  Menu,
-  MenuProvider,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger
-} from "react-native-popup-menu";
+
 import { Entypo } from "@expo/vector-icons";
 
 import type { PlaceDetailsTabProps, Place, PlaceScreenProps } from "../types";
@@ -147,6 +141,8 @@ function PlaceDetailsTab(
 
   const [selectedOption, setSelectedOption] = useState(0);
   const [isPopupMenuVisible, setIsPopupMenuVisible] = useState(false);
+  const [photoInFullSize, setPhotoInFullSize] =
+    useState<CameraCapturedPicture | null>(null);
 
   useEffect(() => {
     placeScreenNavigation.setOptions({
@@ -191,110 +187,150 @@ function PlaceDetailsTab(
         }}
       >
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={styles.modalView}>
-            {isCameraComponentVisible && (
-              <View style={{ flex: 1 }}>
-                {permission == null ? (
-                  <View>
-                    <Text>Loading your camera...</Text>
-                  </View>
-                ) : !permission?.granted ? (
-                  <View>
-                    <Text>
-                      We need your permission to show the camera. Try again
-                    </Text>
-                    <Button
-                      onPress={requestPermission}
-                      title="Grant Permission"
-                    />
-                  </View>
-                ) : (
-                  <View style={{ flex: 1 }}>
-                    <Camera
-                      style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center"
-                      }}
-                      type={type}
-                      ref={cameraRef}
-                      onCameraReady={() => {
-                        setIsCameraReady(true);
-                      }}
-                    >
-                      {isCameraReady && (
-                        <Pressable
-                          style={{
-                            backgroundColor: "#fff",
-                            borderRadius: 50,
-                            width: 60,
-                            height: 60,
-                            position: "absolute",
-                            bottom: 160
-                          }}
-                          onPress={takeAPhoto}
-                        />
-                      )}
-                    </Camera>
-
-                    {photos.length > 0 && (
-                      <View
+          {isCameraComponentVisible && (
+            <View style={{ flex: 1 }}>
+              {permission == null ? (
+                <View>
+                  <Text>Loading your camera...</Text>
+                </View>
+              ) : !permission?.granted ? (
+                <View>
+                  <Text>
+                    We need your permission to show the camera. Try again
+                  </Text>
+                  <Button
+                    onPress={requestPermission}
+                    title="Grant Permission"
+                  />
+                </View>
+              ) : (
+                <View style={{ flex: 1 }}>
+                  <Camera
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                    type={type}
+                    ref={cameraRef}
+                    onCameraReady={() => {
+                      setIsCameraReady(true);
+                    }}
+                  >
+                    {isCameraReady && (
+                      <Pressable
                         style={{
                           backgroundColor: "#fff",
+                          borderRadius: 50,
+                          width: 60,
+                          height: 60,
                           position: "absolute",
-                          bottom: 0,
-                          left: 0,
-                          width: "100%"
+                          bottom: 160
+                        }}
+                        onPress={takeAPhoto}
+                      />
+                    )}
+                  </Camera>
+
+                  {photos.length > 0 && (
+                    <View
+                      style={{
+                        backgroundColor: "#fff",
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        width: "100%"
+                      }}
+                    >
+                      {photoInFullSize !== null && (
+                        <Modal animationType="slide">
+                          <SafeAreaView
+                            style={{
+                              flex: 1,
+                              position: "relative"
+                            }}
+                          >
+                            <Image
+                              source={{ uri: photoInFullSize.uri }}
+                              style={{
+                                flex: 1
+                              }}
+                            />
+
+                            <Pressable
+                              style={{
+                                backgroundColor: "#fff",
+                                borderRadius: 6,
+                                width: 30,
+                                height: 30,
+                                position: "absolute",
+                                top: 80,
+                                right: 40,
+                                justifyContent: "center",
+                                alignItems: "center"
+                              }}
+                              onPress={() => {
+                                setPhotoInFullSize(null);
+                              }}
+                            >
+                              <Text
+                                style={{ fontSize: 18, fontWeight: "bold" }}
+                              >
+                                X
+                              </Text>
+                            </Pressable>
+                          </SafeAreaView>
+                        </Modal>
+                      )}
+                      <ScrollView
+                        horizontal
+                        contentContainerStyle={{
+                          padding: 10
                         }}
                       >
-                        <ScrollView
-                          horizontal
-                          contentContainerStyle={{
-                            padding: 10
-                          }}
-                        >
-                          {photos.map((photo) => {
-                            return (
-                              <View
-                                key={photo.uri}
+                        {photos.map((photo) => {
+                          return (
+                            <Pressable
+                              onPress={() => setPhotoInFullSize(photo)}
+                              key={photo.uri}
+                              style={{
+                                position: "relative",
+                                marginRight: 16,
+                                borderWidth: 4,
+                                borderRadius: 6,
+                                width: 100,
+                                height: 100
+                              }}
+                            >
+                              <Pressable
                                 style={{
-                                  position: "relative",
-                                  marginRight: 16,
+                                  position: "absolute",
+                                  right: -10,
+                                  top: -10,
+                                  backgroundColor: "red",
+                                  borderRadius: 50,
                                   borderWidth: 4,
-                                  borderRadius: 6,
-                                  width: 100,
-                                  height: 100
+                                  width: 26,
+                                  height: 26,
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  zIndex: 2
                                 }}
+                                onPress={() => removePhoto(photo)}
                               >
-                                <Pressable
-                                  style={{
-                                    position: "absolute",
-                                    right: -10,
-                                    top: -10,
-                                    backgroundColor: "red",
-                                    borderRadius: 50,
-                                    borderWidth: 4,
-                                    width: 26,
-                                    height: 26,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    zIndex: 2
-                                  }}
-                                  onPress={() => removePhoto(photo)}
-                                >
-                                  <Text style={{ fontWeight: "bold" }}>X</Text>
-                                </Pressable>
-                                <Image
-                                  source={{ uri: photo.uri }}
-                                  style={{
-                                    flex: 1
-                                  }}
-                                />
-                              </View>
-                            );
-                          })}
-                        </ScrollView>
-                        {/* <Pressable
+                                <Text style={{ fontWeight: "bold" }}>X</Text>
+                              </Pressable>
+                              <Image
+                                source={{ uri: photo.uri }}
+                                style={{
+                                  flex: 1
+                                }}
+                              />
+                            </Pressable>
+                          );
+                        })}
+                      </ScrollView>
+                      {/* <Pressable
                         style={styles.button}
                         onPress={uploadNewPhotos}
                       >
@@ -304,32 +340,31 @@ function PlaceDetailsTab(
                           <Text style={styles.textStyle}>Upload photos</Text>
                         )}
                       </Pressable> */}
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-            )}
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
 
-            <Pressable
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 6,
-                width: 30,
-                height: 30,
-                position: "absolute",
-                top: 80,
-                right: 40,
-                justifyContent: "center",
-                alignItems: "center"
-              }}
-              onPress={() => {
-                setIsModalVisible(false);
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: "bold" }}>X</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 6,
+              width: 30,
+              height: 30,
+              position: "absolute",
+              top: 80,
+              right: 40,
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+            onPress={() => {
+              setIsModalVisible(false);
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>X</Text>
+          </Pressable>
         </SafeAreaView>
       </Modal>
 
