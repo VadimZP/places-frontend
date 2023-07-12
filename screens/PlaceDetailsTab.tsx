@@ -11,7 +11,8 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
-  Modal
+  Modal,
+  TextInput
 } from "react-native";
 import { type QueryClient, useQueryClient } from "react-query";
 import { decode } from "base64-arraybuffer";
@@ -160,6 +161,8 @@ function PlaceDetailsTab(
   }, [placeScreenNavigation]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDiscardChangesModalVisible, setIsDiscardChangesModalVisible] =
+    useState(false);
 
   const menuItems = [
     {
@@ -171,6 +174,9 @@ function PlaceDetailsTab(
     { name: "Edit place", onPress: () => {} },
     { name: "Delete place", onPress: () => {} }
   ];
+
+  const [isContentEditable, setIsContentEditable] = useState(true);
+  const [placeContent, setPlaceContent] = useState(place?.content);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -347,6 +353,41 @@ function PlaceDetailsTab(
             </View>
           )}
 
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isDiscardChangesModalVisible}
+            onRequestClose={() => {
+              setIsDiscardChangesModalVisible(false);
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text style={styles.modalText}>Discard all changes?</Text>
+                <View style={styles.buttonsWrapper}>
+                  <Pressable
+                    style={styles.button}
+                    onPress={() => {
+                      setPhotos([]);
+                      setIsDiscardChangesModalVisible(false);
+                      setIsModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.textStyle}>Yes</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.button}
+                    onPress={() => {
+                      setIsDiscardChangesModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.textStyle}>No</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
           <Pressable
             style={{
               backgroundColor: "#fff",
@@ -360,7 +401,11 @@ function PlaceDetailsTab(
               alignItems: "center"
             }}
             onPress={() => {
-              setIsModalVisible(false);
+              if (photos.length > 0) {
+                setIsDiscardChangesModalVisible(true);
+              } else {
+                setIsModalVisible(false);
+              }
             }}
           >
             <Text style={{ fontSize: 18, fontWeight: "bold" }}>X</Text>
@@ -371,7 +416,18 @@ function PlaceDetailsTab(
       <View style={styles.wrapper}>
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.name}>{place?.name}</Text>
-          <Text style={styles.content}>{place?.content}</Text>
+          {isContentEditable ? (
+            <TextInput
+              style={[styles.content, { borderWidth: 2 }]}
+              onChangeText={setPlaceContent}
+              multiline
+              value={placeContent}
+              placeholder="useless placeholder"
+              keyboardType="numeric"
+            />
+          ) : (
+            <Text style={styles.content}>{place?.content}</Text>
+          )}
         </View>
 
         {placePhotos.length > 0 && (
@@ -456,5 +512,29 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: "center"
+  },
+  buttonsWrapper: {
+    marginTop: 14,
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  modalView: {
+    width: "70%",
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 14,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
   }
 });

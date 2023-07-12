@@ -1,4 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { AntDesign } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import PlaceDetailsTab from "./PlaceDetailsTab";
 import PlaceReviewsTab from "./PlaceReviewsTab";
@@ -12,7 +14,14 @@ export default function PlaceScreen({
 }: PlaceScreenProps) {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Details">
+      <Tab.Screen
+        name="Details"
+        options={{
+          tabBarIcon: () => (
+            <AntDesign name="enviroment" size={24} color="black" />
+          )
+        }}
+      >
         {(props) => (
           <PlaceDetailsTab
             {...props}
@@ -21,7 +30,14 @@ export default function PlaceScreen({
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="Reviews">
+      <Tab.Screen
+        name="Reviews"
+        options={{
+          tabBarIcon: () => (
+            <MaterialIcons name="rate-review" size={24} color="black" />
+          )
+        }}
+      >
         {(props) => (
           <PlaceReviewsTab {...props} placeId={route.params.placeId} />
         )}

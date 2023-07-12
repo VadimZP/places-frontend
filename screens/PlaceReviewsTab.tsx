@@ -123,7 +123,6 @@ function PlaceReviewsTab(props: PlaceReviewsTabProps & { placeId: number }) {
       </Pressable>
       {reviewsList != null && reviewsList.length > 0 && (
         <FlatList
-          horizontal
           data={reviewsList}
           renderItem={({ item }) => {
             return (

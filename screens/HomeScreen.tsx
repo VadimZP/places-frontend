@@ -276,7 +276,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <MapView
         style={styles.map}
         onLongPress={createPlaceHandler}
@@ -360,7 +360,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
 

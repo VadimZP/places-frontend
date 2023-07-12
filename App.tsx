@@ -59,7 +59,11 @@ export default function App() {
             <Stack.Screen name="Auth" component={AuthScreen} />
           ) : (
             <>
-              <Stack.Screen name="Home" component={HomeScreen} />
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ headerShown: false }}
+              />
               <Stack.Screen
                 name="Place"
                 component={PlaceScreen}
