@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Modal,
-  Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform
@@ -25,6 +24,8 @@ import {
   type Place
 } from "../types";
 import { useCreatePlace, useFetchPlaces } from "../hooks/reactQuery";
+import Button from "../components/Button";
+import Input from "../components/Input";
 
 function ModalStep1({
   setModalStep,
@@ -36,28 +37,26 @@ function ModalStep1({
   isModalVisible: boolean;
 }) {
   return (
-    <View style={styles.modalView}>
+    // <View style={styles.modalView}>
+    <>
       <Text style={styles.modalText}>Let&apos;s create a new place!</Text>
       <Text style={styles.modalText}>Are you ready?</Text>
       <View style={styles.buttonsWrapper}>
-        <Pressable
-          style={styles.button}
+        <Button
           onPress={() => {
             setModalStep(2);
           }}
-        >
-          <Text style={styles.textStyle}>Yes</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
+          title="Yes"
+        />
+        <Button
           onPress={() => {
             setIsModalVisible(false);
           }}
-        >
-          <Text style={styles.textStyle}>No</Text>
-        </Pressable>
+          title="No"
+        />
       </View>
-    </View>
+    </>
+    // </View>
   );
 }
 
@@ -86,29 +85,27 @@ function ModalStep2({
   const mutation = useCreatePlace();
 
   return (
-    <View style={styles.modalView}>
-      <Text style={styles.modalText}>Great! Name your new place</Text>
-      <View style={styles.inputWrapper}>
-        <Text style={styles.inputLabel}>Place name</Text>
-        <TextInput
-          style={styles.input}
-          value={placeName}
-          onChangeText={setPlaceName}
-        />
-      </View>
-      <View style={styles.inputWrapper}>
-        <Text style={styles.inputLabel}>Place description</Text>
-        <TextInput
-          style={styles.textarea}
-          multiline
-          numberOfLines={5}
-          value={placeContent}
-          onChangeText={setPlaceContent}
-        />
-      </View>
+    // <View style={styles.modalView}>
+    <>
+      <Text style={styles.modalText}>Name your new place</Text>
+      <Input
+        label="Name"
+        value={placeName}
+        onChangeText={setPlaceName}
+        wrapperStyles={styles.inputWrapper}
+      />
+      <Input
+        label="Description"
+        value={placeContent}
+        onChangeText={setPlaceContent}
+        wrapperStyles={styles.inputWrapper}
+        multiline
+        numberOfLines={5}
+        textarea
+      />
       <View style={styles.buttonsWrapper}>
-        <Pressable
-          style={styles.button}
+        <Button
+          title="Confirm"
           onPress={() => {
             if (
               placeCoords.longitude === null ||
@@ -138,22 +135,19 @@ function ModalStep2({
               }
             );
           }}
-        >
-          <Text style={styles.textStyle}>Confirm</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
+        />
+        <Button
+          title="Cancel"
           onPress={() => {
             setModalStep(1);
             setPlaceName("");
             setPlaceContent("");
             setIsModalVisible(false);
           }}
-        >
-          <Text style={styles.textStyle}>Cancel</Text>
-        </Pressable>
+        />
       </View>
-    </View>
+    </>
+    // </View>
   );
 }
 
@@ -178,8 +172,8 @@ function ModalStep3({
         Want to get a detailed info about this place?
       </Text>
       <View style={styles.buttonsWrapper}>
-        <Pressable
-          style={styles.button}
+        <Button
+          title="Yes"
           onPress={() => {
             setModalStep(1);
             setIsModalVisible(false);
@@ -189,19 +183,15 @@ function ModalStep3({
               });
             }
           }}
-        >
-          <Text style={styles.textStyle}>Yes</Text>
-        </Pressable>
-        <Pressable
-          style={styles.button}
+        />
+        <Button
+          title="No"
           onPress={() => {
             setModalStep(1);
             setIsModalVisible(false);
             setSelectedPlaceId(null);
           }}
-        >
-          <Text style={styles.textStyle}>No</Text>
-        </Pressable>
+        />
       </View>
     </View>
   );
@@ -251,13 +241,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     setIsModalVisible(true);
   }
 
-  if (isMapLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading the map...</Text>
-      </SafeAreaView>
-    );
-  }
+  // if (isMapLoading) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <Text>Loading the map...</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   if (typeof errorMsg === "string") {
     return (
@@ -317,17 +307,22 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       </MapView>
       <Modal
         animationType="slide"
-        transparent={true}
         visible={isModalVisible}
         onRequestClose={() => {
           setIsModalVisible(false);
         }}
       >
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            alignContent: "center",
+            justifyContent: "center",
+            display: "flex",
+            backgroundColor: "#F6F6F6"
+          }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <View style={styles.centeredView}>
+          <SafeAreaView>
             {modalStep === 1 && (
               <ModalStep1
                 setModalStep={setModalStep}
@@ -357,7 +352,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 setSelectedPlaceId={setSelectedPlaceId}
               />
             )}
-          </View>
+          </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
     </>
@@ -378,16 +373,19 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   modalView: {
-    width: "70%",
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 14,
+    // width: "75%",
+    flex: 1,
+    backgroundColor: "#F6F6F6",
+    borderRadius: 9,
+    padding: 20,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2
     },
     shadowOpacity: 0.25,
+    borderWidth: 2,
+    borderColor: "#E3E3E3",
     shadowRadius: 4,
     elevation: 5
   },
@@ -399,37 +397,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between"
   },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    backgroundColor: "#2196F3",
-    width: 120
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
-  },
   modalText: {
     textAlign: "center",
-    marginBottom: 20
+    marginBottom: 26,
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#4B4B4B"
   },
   inputWrapper: {
     marginBottom: 16
-  },
-  inputLabel: {
-    marginBottom: 10
-  },
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    height: 40
-  },
-  textarea: {
-    textAlignVertical: "top",
-    borderWidth: 1,
-    padding: 10,
-    height: 100
   }
 });
