@@ -418,7 +418,10 @@ function PlaceDetailsTab(
           <Text style={styles.name}>{place?.name}</Text>
           {isContentEditable ? (
             <TextInput
-              style={[styles.content, { borderWidth: 2 }]}
+              style={[
+                styles.content,
+                { borderWidth: 2, fontFamily: "RobotoMono_400Regular" }
+              ]}
               onChangeText={setPlaceContent}
               multiline
               value={placeContent}
@@ -465,7 +468,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#412e00",
     fontSize: 18,
-    marginBottom: 20
+    marginBottom: 20,
+    fontFamily: "RobotoMono_700Bold"
   },
   content: {
     color: "#412e00",

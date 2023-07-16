@@ -12,11 +12,46 @@ import AuthScreen from "./screens/AuthScreen";
 import PlaceScreen from "./screens/PlaceScreen";
 import HomeScreen from "./screens/HomeScreen";
 
+import {
+  useFonts,
+  RobotoMono_100Thin,
+  RobotoMono_200ExtraLight,
+  RobotoMono_300Light,
+  RobotoMono_400Regular,
+  RobotoMono_500Medium,
+  RobotoMono_600SemiBold,
+  RobotoMono_700Bold,
+  RobotoMono_100Thin_Italic,
+  RobotoMono_200ExtraLight_Italic,
+  RobotoMono_300Light_Italic,
+  RobotoMono_400Regular_Italic,
+  RobotoMono_500Medium_Italic,
+  RobotoMono_600SemiBold_Italic,
+  RobotoMono_700Bold_Italic
+} from "@expo-google-fonts/roboto-mono";
+
 const queryClient = new QueryClient();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  let [fontsLoaded] = useFonts({
+    RobotoMono_100Thin,
+    RobotoMono_200ExtraLight,
+    RobotoMono_300Light,
+    RobotoMono_400Regular,
+    RobotoMono_500Medium,
+    RobotoMono_600SemiBold,
+    RobotoMono_700Bold,
+    RobotoMono_100Thin_Italic,
+    RobotoMono_200ExtraLight_Italic,
+    RobotoMono_300Light_Italic,
+    RobotoMono_400Regular_Italic,
+    RobotoMono_500Medium_Italic,
+    RobotoMono_600SemiBold_Italic,
+    RobotoMono_700Bold_Italic
+  });
+
   const [session, setSession] = useState<Session | null>(null);
   const [isCheckingCredentials, setIsCheckingCredentials] = useState(false);
 
@@ -42,6 +77,14 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  if (!fontsLoaded) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading fonts...</Text>
+      </SafeAreaView>
+    );
+  }
 
   if (isCheckingCredentials) {
     return (

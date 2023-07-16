@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Modal,
-  TextInput,
   KeyboardAvoidingView,
   Platform
 } from "react-native";
@@ -17,50 +16,14 @@ import MapView, {
 import * as Location from "expo-location";
 import Toast from "react-native-root-toast";
 import { type LocationObject } from "expo-location";
+import { AntDesign } from "@expo/vector-icons";
 
-import {
-  type HomeScreenNavigationProp,
-  type HomeScreenProps,
-  type Place
-} from "../types";
+import { type HomeScreenProps, type Place } from "../types";
 import { useCreatePlace, useFetchPlaces } from "../hooks/reactQuery";
 import Button from "../components/Button";
 import Input from "../components/Input";
 
 function ModalStep1({
-  setModalStep,
-  setIsModalVisible,
-  isModalVisible
-}: {
-  setModalStep: React.Dispatch<SetStateAction<number>>;
-  setIsModalVisible: React.Dispatch<SetStateAction<boolean>>;
-  isModalVisible: boolean;
-}) {
-  return (
-    // <View style={styles.modalView}>
-    <>
-      <Text style={styles.modalText}>Let&apos;s create a new place!</Text>
-      <Text style={styles.modalText}>Are you ready?</Text>
-      <View style={styles.buttonsWrapper}>
-        <Button
-          onPress={() => {
-            setModalStep(2);
-          }}
-          title="Yes"
-        />
-        <Button
-          onPress={() => {
-            setIsModalVisible(false);
-          }}
-          title="No"
-        />
-      </View>
-    </>
-    // </View>
-  );
-}
-
-function ModalStep2({
   setModalStep,
   setIsModalVisible,
   isModalVisible,
@@ -85,8 +48,18 @@ function ModalStep2({
   const mutation = useCreatePlace();
 
   return (
-    // <View style={styles.modalView}>
     <>
+      <AntDesign
+        onPress={() => {
+          setIsModalVisible(false);
+          setPlaceName("");
+          setPlaceContent("");
+        }}
+        name="close"
+        size={48}
+        color="#975FA5"
+        style={{ position: "absolute", top: 80, left: 0 }}
+      />
       <Text style={styles.modalText}>Name your new place</Text>
       <Input
         label="Name"
@@ -105,7 +78,8 @@ function ModalStep2({
       />
       <View style={styles.buttonsWrapper}>
         <Button
-          title="Confirm"
+          title="Add to my map"
+          width={"100%"}
           onPress={() => {
             if (
               placeCoords.longitude === null ||
@@ -136,64 +110,8 @@ function ModalStep2({
             );
           }}
         />
-        <Button
-          title="Cancel"
-          onPress={() => {
-            setModalStep(1);
-            setPlaceName("");
-            setPlaceContent("");
-            setIsModalVisible(false);
-          }}
-        />
       </View>
     </>
-    // </View>
-  );
-}
-
-function ModalStep3({
-  setModalStep,
-  setIsModalVisible,
-  isModalVisible,
-  navigation,
-  selectedPlaceId,
-  setSelectedPlaceId
-}: {
-  setModalStep: React.Dispatch<SetStateAction<number>>;
-  setIsModalVisible: React.Dispatch<SetStateAction<boolean>>;
-  isModalVisible: boolean;
-  navigation: HomeScreenNavigationProp;
-  selectedPlaceId: number | null;
-  setSelectedPlaceId: React.Dispatch<SetStateAction<number | null>>;
-}) {
-  return (
-    <View style={styles.modalView}>
-      <Text style={styles.modalText}>
-        Want to get a detailed info about this place?
-      </Text>
-      <View style={styles.buttonsWrapper}>
-        <Button
-          title="Yes"
-          onPress={() => {
-            setModalStep(1);
-            setIsModalVisible(false);
-            if (selectedPlaceId !== null) {
-              navigation.navigate("Place", {
-                placeId: selectedPlaceId
-              });
-            }
-          }}
-        />
-        <Button
-          title="No"
-          onPress={() => {
-            setModalStep(1);
-            setIsModalVisible(false);
-            setSelectedPlaceId(null);
-          }}
-        />
-      </View>
-    </View>
   );
 }
 
@@ -209,7 +127,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   }>({ longitude: null, latitude: null });
   const [placeName, setPlaceName] = useState("");
   const [placeContent, setPlaceContent] = useState("");
-  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
   const { data: placesList } = useFetchPlaces();
 
   useEffect(() => {
@@ -241,13 +158,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     setIsModalVisible(true);
   }
 
-  // if (isMapLoading) {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <Text>Loading the map...</Text>
-  //     </SafeAreaView>
-  //   );
-  // }
+  if (isMapLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading the map...</Text>
+      </SafeAreaView>
+    );
+  }
 
   if (typeof errorMsg === "string") {
     return (
@@ -292,9 +209,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             >
               <Callout
                 onPress={() => {
-                  setIsModalVisible(true);
-                  setSelectedPlaceId(place.id);
-                  setModalStep(3);
+                  navigation.navigate("Place", {
+                    placeId: place.id
+                  });
                 }}
               >
                 <View>
@@ -315,23 +232,20 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <KeyboardAvoidingView
           style={{
             flex: 1,
-            alignContent: "center",
-            justifyContent: "center",
-            display: "flex",
-            backgroundColor: "#F6F6F6"
+            paddingHorizontal: 40
           }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <SafeAreaView>
+          <SafeAreaView
+            style={{
+              flex: 1,
+              alignContent: "center",
+              justifyContent: "center",
+              position: "relative"
+            }}
+          >
             {modalStep === 1 && (
               <ModalStep1
-                setModalStep={setModalStep}
-                setIsModalVisible={setIsModalVisible}
-                isModalVisible={isModalVisible}
-              />
-            )}
-            {modalStep === 2 && (
-              <ModalStep2
                 setModalStep={setModalStep}
                 setIsModalVisible={setIsModalVisible}
                 isModalVisible={isModalVisible}
@@ -340,16 +254,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 placeContent={placeContent}
                 setPlaceContent={setPlaceContent}
                 placeCoords={placeCoords}
-              />
-            )}
-            {modalStep === 3 && (
-              <ModalStep3
-                setModalStep={setModalStep}
-                setIsModalVisible={setIsModalVisible}
-                isModalVisible={isModalVisible}
-                navigation={navigation}
-                selectedPlaceId={selectedPlaceId}
-                setSelectedPlaceId={setSelectedPlaceId}
               />
             )}
           </SafeAreaView>
@@ -372,23 +276,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center"
   },
-  modalView: {
-    // width: "75%",
-    flex: 1,
-    backgroundColor: "#F6F6F6",
-    borderRadius: 9,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    borderWidth: 2,
-    borderColor: "#E3E3E3",
-    shadowRadius: 4,
-    elevation: 5
-  },
   textWrapper: {
     textAlign: "center"
   },
@@ -399,7 +286,7 @@ const styles = StyleSheet.create({
   },
   modalText: {
     textAlign: "center",
-    marginBottom: 26,
+    marginBottom: 16,
     fontSize: 18,
     fontWeight: "500",
     color: "#4B4B4B"

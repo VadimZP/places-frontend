@@ -4,12 +4,17 @@ import { LinearGradient } from "expo-linear-gradient";
 interface ButtonProps<T> {
   onPress: () => T;
   title: string;
+  width?: string | number;
 }
 
-export default function Button<T>({ onPress, title }: ButtonProps<T>) {
+export default function Button<T>({
+  onPress,
+  title,
+  width = 120
+}: ButtonProps<T>) {
   return (
     <Pressable
-      style={styles.button}
+      style={[styles.button, { width }]}
       onPress={() => {
         onPress();
       }}
@@ -27,7 +32,7 @@ export default function Button<T>({ onPress, title }: ButtonProps<T>) {
 
 const styles = StyleSheet.create({
   button: {
-    width: 120,
+    width: "100%",
     height: 40,
     shadowColor: "#9C9C9C",
     shadowOffset: {
