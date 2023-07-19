@@ -1,9 +1,10 @@
-import { Text, SafeAreaView, StyleSheet } from "react-native";
-import { useState, useEffect } from "react";
+import { Text, SafeAreaView, StyleSheet, View } from "react-native";
+import { useState, useEffect, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Entypo } from "@expo/vector-icons";
+import * as SplashScreen from "expo-splash-screen";
 import { type Session } from "@supabase/supabase-js";
 
 import { supabase } from "./supabase";
@@ -34,8 +35,10 @@ const queryClient = new QueryClient();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+SplashScreen.preventAutoHideAsync();
+
 export default function App() {
-  let [fontsLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     RobotoMono_100Thin,
     RobotoMono_200ExtraLight,
     RobotoMono_300Light,
@@ -53,18 +56,17 @@ export default function App() {
   });
 
   const [session, setSession] = useState<Session | null>(null);
-  const [isCheckingCredentials, setIsCheckingCredentials] = useState(false);
+  const [isCredentialsChecked, setIsCredentialsChecked] =
+    useState<boolean>(false);
 
   useEffect(() => {
-    setIsCheckingCredentials(true);
-
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
         setSession(session);
       })
       .finally(() => {
-        setIsCheckingCredentials(false);
+        setIsCredentialsChecked(true);
       });
 
     const {
@@ -78,52 +80,68 @@ export default function App() {
     };
   }, []);
 
-  if (!fontsLoaded) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading fonts...</Text>
-      </SafeAreaView>
-    );
-  }
+  // if (!fontsLoaded) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <Text>Loading fonts...</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
 
-  if (isCheckingCredentials) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading the app...</Text>
-      </SafeAreaView>
-    );
+  // if (isCheckingCredentials) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <Text>Loading the app...</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
+
+  const onLayoutRootView = useCallback(async () => {
+    if (session === null && fontsLoaded && isCredentialsChecked) {
+      await SplashScreen.hideAsync();
+    }
+  }, [session, fontsLoaded, isCredentialsChecked]);
+
+  if (!fontsLoaded || !isCredentialsChecked) {
+    return null;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          {session == null ? (
-            <Stack.Screen name="Auth" component={AuthScreen} />
-          ) : (
-            <>
-              <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Place"
-                component={PlaceScreen}
-                options={{
-                  headerRight: () => (
-                    <Entypo.Button
-                      name="dots-three-vertical"
-                      size={24}
-                      color="black"
-                    />
-                  )
-                }}
-              />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+      <View style={styles.container} onLayout={onLayoutRootView}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {session == null ? (
+              <Stack.Screen name="Auth" component={AuthScreen} />
+            ) : (
+              <>
+                <Stack.Screen
+                  name="Home"
+                  component={HomeScreen}
+                  options={{ headerShown: false }}
+                  initialParams={{
+                    fontsLoaded,
+                    isCredentialsChecked
+                  }}
+                />
+                <Stack.Screen
+                  name="Place"
+                  component={PlaceScreen}
+                  options={{
+                    headerRight: () => (
+                      <Entypo.Button
+                        name="dots-three-vertical"
+                        size={24}
+                        color="black"
+                      />
+                    )
+                  }}
+                />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </View>
     </QueryClientProvider>
   );
 }

@@ -23,6 +23,8 @@ import { Entypo } from "@expo/vector-icons";
 import type { PlaceDetailsTabProps, Place, PlaceScreenProps } from "../types";
 import { supabase } from "../supabase";
 import PopupMenu from "../components/PopupMenu";
+import MyButton from "../components/MyButton";
+import { useUpdatePlaceContent } from "../hooks/reactQuery";
 
 function PlaceDetailsTab(
   props: PlaceDetailsTabProps & {
@@ -140,7 +142,6 @@ function PlaceDetailsTab(
     }
   }
 
-  const [selectedOption, setSelectedOption] = useState(0);
   const [isPopupMenuVisible, setIsPopupMenuVisible] = useState(false);
   const [photoInFullSize, setPhotoInFullSize] =
     useState<CameraCapturedPicture | null>(null);
@@ -169,14 +170,23 @@ function PlaceDetailsTab(
       name: "Add photos",
       onPress: () => {
         setIsModalVisible(!isModalVisible);
+        setIsPopupMenuVisible(false);
       }
     },
-    { name: "Edit place", onPress: () => {} },
+    {
+      name: "Edit place",
+      onPress: () => {
+        setIsContentEditable(true);
+        setIsPopupMenuVisible(false);
+      }
+    },
     { name: "Delete place", onPress: () => {} }
   ];
 
-  const [isContentEditable, setIsContentEditable] = useState(true);
+  const [isContentEditable, setIsContentEditable] = useState<boolean>(false);
   const [placeContent, setPlaceContent] = useState(place?.content);
+
+  const mutation = useUpdatePlaceContent();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -417,17 +427,35 @@ function PlaceDetailsTab(
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.name}>{place?.name}</Text>
           {isContentEditable ? (
-            <TextInput
-              style={[
-                styles.content,
-                { borderWidth: 2, fontFamily: "RobotoMono_400Regular" }
-              ]}
-              onChangeText={setPlaceContent}
-              multiline
-              value={placeContent}
-              placeholder="useless placeholder"
-              keyboardType="numeric"
-            />
+            <>
+              <View style={styles.textEditorButtons}>
+                <MyButton
+                  title="Apply"
+                  onPress={() => {
+                    if (placeContent != null) {
+                      mutation.mutate({ placeContent, placeId });
+                    }
+                  }}
+                />
+                <MyButton
+                  title="Discard"
+                  onPress={() => {
+                    setIsContentEditable(false);
+                  }}
+                />
+              </View>
+              <TextInput
+                style={[
+                  styles.content,
+                  { borderWidth: 2, fontFamily: "RobotoMono_400Regular" }
+                ]}
+                onChangeText={setPlaceContent}
+                multiline
+                value={placeContent}
+                placeholder="useless placeholder"
+                keyboardType="numeric"
+              />
+            </>
           ) : (
             <Text style={styles.content}>{place?.content}</Text>
           )}
@@ -467,7 +495,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
     color: "#412e00",
-    fontSize: 18,
+    fontSize: 24,
     marginBottom: 20,
     fontFamily: "RobotoMono_700Bold"
   },
@@ -508,25 +536,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textTransform: "uppercase"
   },
-
-  modalView: {
-    flex: 1
-  },
-
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center"
-  },
-  buttonsWrapper: {
-    marginTop: 14,
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center"
-  },
   modalView: {
     width: "70%",
     backgroundColor: "white",
@@ -540,5 +549,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  buttonsWrapper: {
+    marginTop: 14,
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  textEditorButtons: {
+    marginBottom: 14,
+    flexDirection: "row",
+    justifyContent: "space-around"
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
   }
 });

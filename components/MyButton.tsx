@@ -1,17 +1,17 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-interface ButtonProps<T> {
+interface MyButtonProps<T> {
   onPress: () => T;
   title: string;
   width?: string | number;
 }
 
-export default function Button<T>({
+export default function MyButton<T>({
   onPress,
   title,
   width = 120
-}: ButtonProps<T>) {
+}: MyButtonProps<T>) {
   return (
     <Pressable
       style={[styles.button, { width }]}
@@ -41,7 +41,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 1,
     shadowRadius: 1,
-    elevation: 2
+    elevation: 2,
+    backgroundColor: "#975FA5",
+    borderRadius: 9
   },
   gradient: {
     flex: 1,

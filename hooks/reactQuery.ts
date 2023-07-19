@@ -80,3 +80,24 @@ export function useCreateReview() {
     }
   )
 }
+
+
+export function useUpdatePlaceContent() {
+  // const queryClient = useQueryClient()
+
+  return useMutation<unknown, unknown>(
+    async ({ placeContent, placeId }) => {
+      const { error } = await supabase.from('places').update({ content: placeContent })
+        .eq('id', placeId)
+
+      if (error != null) {
+        throw new Error(error.message)
+      }
+    },
+    // {
+    //   onSuccess: () => {
+    //     void queryClient.invalidateQueries('reviews')
+    //   }
+    // }
+  )
+}

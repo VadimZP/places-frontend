@@ -1,4 +1,4 @@
-import { useState, useEffect, type SetStateAction } from "react";
+import { useState, useEffect, type SetStateAction, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,34 +8,29 @@ import {
   KeyboardAvoidingView,
   Platform
 } from "react-native";
-import MapView, {
-  Marker,
-  Callout,
-  type LongPressEvent
-} from "react-native-maps";
+import MapView, { type LongPressEvent } from "react-native-maps";
 import * as Location from "expo-location";
 import Toast from "react-native-root-toast";
 import { type LocationObject } from "expo-location";
 import { AntDesign } from "@expo/vector-icons";
+import * as SplashScreen from "expo-splash-screen";
 
 import { type HomeScreenProps, type Place } from "../types";
 import { useCreatePlace, useFetchPlaces } from "../hooks/reactQuery";
-import Button from "../components/Button";
+import MyButton from "../components/MyButton";
 import Input from "../components/Input";
+import MyMapMarker from "../components/MapMarker";
+import { showToast } from "../components/Toast";
 
-function ModalStep1({
-  setModalStep,
+function ModalContent({
   setIsModalVisible,
-  isModalVisible,
   placeName,
   setPlaceName,
   placeContent,
   setPlaceContent,
   placeCoords
 }: {
-  setModalStep: React.Dispatch<SetStateAction<number>>;
   setIsModalVisible: React.Dispatch<SetStateAction<boolean>>;
-  isModalVisible: boolean;
   placeName: string;
   setPlaceName: React.Dispatch<SetStateAction<string>>;
   placeContent: string;
@@ -46,6 +41,35 @@ function ModalStep1({
   };
 }) {
   const mutation = useCreatePlace();
+
+  function addNewPlaceToMap() {
+    if (placeCoords.longitude === null || placeCoords.latitude === null) {
+      showToast({
+        message: "Something went wrong with latitude and longitude"
+      });
+      return;
+    }
+    mutation.mutate(
+      {
+        name: placeName,
+        content: placeContent,
+        location: `POINT(${placeCoords.longitude} ${placeCoords.latitude})`
+      },
+      {
+        onSuccess: () => {
+          showToast({
+            message: "Your new place was successfully created!",
+            duration: Toast.durations.SHORT
+          });
+
+          setPlaceName("");
+          setPlaceContent("");
+
+          setIsModalVisible(false);
+        }
+      }
+    );
+  }
 
   return (
     <>
@@ -76,51 +100,20 @@ function ModalStep1({
         numberOfLines={5}
         textarea
       />
-      <View style={styles.buttonsWrapper}>
-        <Button
-          title="Add to my map"
-          width={"100%"}
-          onPress={() => {
-            if (
-              placeCoords.longitude === null ||
-              placeCoords.latitude === null
-            ) {
-              console.error("Something went wrong with latitude and longitude");
-              return;
-            }
-            mutation.mutate(
-              {
-                name: placeName,
-                content: placeContent,
-                location: `POINT(${placeCoords.longitude} ${placeCoords.latitude})`
-              },
-              {
-                onSuccess: () => {
-                  Toast.show("Your new place was successfully created!", {
-                    duration: Toast.durations.SHORT,
-                    position: 40
-                  });
-
-                  setPlaceName("");
-                  setPlaceContent("");
-
-                  setIsModalVisible(false);
-                }
-              }
-            );
-          }}
-        />
-      </View>
+      <MyButton
+        title="Add to my map"
+        width={"100%"}
+        onPress={addNewPlaceToMap}
+      />
     </>
   );
 }
 
-export default function HomeScreen({ navigation }: HomeScreenProps) {
+export default function HomeScreen({ route, navigation }: HomeScreenProps) {
   const [location, setLocation] = useState<LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | unknown>(null);
-  const [isMapLoading, setIsMapLoading] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [modalStep, setModalStep] = useState(1);
   const [placeCoords, setPlaceCoords] = useState<{
     longitude: number | null;
     latitude: number | null;
@@ -132,8 +125,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   useEffect(() => {
     async function setUserPosition() {
       try {
-        setIsMapLoading(true);
-
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           setErrorMsg("Permission to access location was denied");
@@ -145,25 +136,30 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       } catch (error: unknown) {
         setErrorMsg(error);
       } finally {
-        setIsMapLoading(false);
+        setIsMapLoaded(true);
       }
     }
 
     void setUserPosition();
   }, []);
 
+  const { fontsLoaded, isCredentialsChecked } = route.params;
+
+  const onLayoutRootView = useCallback(async () => {
+    if (
+      fontsLoaded &&
+      isCredentialsChecked &&
+      isMapLoaded &&
+      location != null
+    ) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, isCredentialsChecked, isMapLoaded, location]);
+
   function createPlaceHandler(event: LongPressEvent) {
     const { coordinate } = event.nativeEvent;
     setPlaceCoords(coordinate);
     setIsModalVisible(true);
-  }
-
-  if (isMapLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading the map...</Text>
-      </SafeAreaView>
-    );
   }
 
   if (typeof errorMsg === "string") {
@@ -182,8 +178,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     );
   }
 
+  function openPlaceInformation(placeId: number) {
+    navigation.navigate("Place", {
+      placeId
+    });
+  }
+
   return (
-    <>
+    <View style={styles.container} onLayout={onLayoutRootView}>
       <MapView
         style={styles.map}
         onLongPress={createPlaceHandler}
@@ -200,25 +202,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             .split(" ");
 
           return (
-            <Marker
+            <MyMapMarker
               key={place.id}
-              coordinate={{
-                longitude: +longitude,
-                latitude: +latitude
+              placeId={place.id}
+              longitude={+longitude}
+              latitude={+latitude}
+              placeName={place.name}
+              onPress={() => {
+                openPlaceInformation(place.id);
               }}
-            >
-              <Callout
-                onPress={() => {
-                  navigation.navigate("Place", {
-                    placeId: place.id
-                  });
-                }}
-              >
-                <View>
-                  <Text>{place.name}</Text>
-                </View>
-              </Callout>
-            </Marker>
+            />
           );
         })}
       </MapView>
@@ -230,42 +223,38 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         }}
       >
         <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            paddingHorizontal: 40
-          }}
+          style={styles.modalKeyboardAvoidingView}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <SafeAreaView
-            style={{
-              flex: 1,
-              alignContent: "center",
-              justifyContent: "center",
-              position: "relative"
-            }}
-          >
-            {modalStep === 1 && (
-              <ModalStep1
-                setModalStep={setModalStep}
-                setIsModalVisible={setIsModalVisible}
-                isModalVisible={isModalVisible}
-                placeName={placeName}
-                setPlaceName={setPlaceName}
-                placeContent={placeContent}
-                setPlaceContent={setPlaceContent}
-                placeCoords={placeCoords}
-              />
-            )}
+          <SafeAreaView style={styles.modalSafeAreaView}>
+            <ModalContent
+              setIsModalVisible={setIsModalVisible}
+              placeName={placeName}
+              setPlaceName={setPlaceName}
+              placeContent={placeContent}
+              setPlaceContent={setPlaceContent}
+              placeCoords={placeCoords}
+            />
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1
+  },
+  modalKeyboardAvoidingView: {
+    flex: 1,
+    paddingHorizontal: 40
+  },
+  modalSafeAreaView: {
+    flex: 1,
+    alignContent: "center",
+    justifyContent: "center",
+    position: "relative"
   },
   map: {
     width: "100%",
