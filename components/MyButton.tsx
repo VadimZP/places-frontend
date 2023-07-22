@@ -1,19 +1,24 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface MyButtonProps<T> {
   onPress: () => T;
   title: string;
   width?: string | number;
+  disabled?: boolean;
+  isLoading?: boolean;
 }
 
 export default function MyButton<T>({
   onPress,
   title,
-  width = 120
+  width = 120,
+  disabled,
+  isLoading = false
 }: MyButtonProps<T>) {
   return (
     <Pressable
+      {...(disabled != null ? { disabled } : {})}
       style={[styles.button, { width }]}
       onPress={() => {
         onPress();
@@ -21,10 +26,18 @@ export default function MyButton<T>({
     >
       <LinearGradient
         locations={[0.1, 0.8]}
-        colors={["#975FA5", "#9C6CA8"]}
+        colors={
+          disabled != null && disabled
+            ? ["#9C9C9C", "#9C9C9C"]
+            : ["#975FA5", "#9C6CA8"]
+        }
         style={styles.gradient}
       >
-        <Text style={styles.textStyle}>{title}</Text>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <Text style={styles.textStyle}>{title}</Text>
+        )}
       </LinearGradient>
     </Pressable>
   );

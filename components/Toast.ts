@@ -11,7 +11,7 @@ export function showToast({
     message,
     duration = Toast.durations.LONG,
     position = 40,
-    backgroundColor = '#bf0000' }: showToastProps) {
+    backgroundColor }: showToastProps) {
     Toast.show(message, {
         duration,
         position,

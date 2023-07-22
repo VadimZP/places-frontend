@@ -18,6 +18,7 @@ import { DateTime } from "luxon";
 
 import { type PlaceReviewsTabProps } from "../types";
 import { useCreateReview, useFetchReviews } from "../hooks/reactQuery";
+import { showToast } from "../components/Toast";
 
 function PlaceReviewsTab(props: PlaceReviewsTabProps & { placeId: number }) {
   const { placeId } = props;
@@ -85,9 +86,8 @@ function PlaceReviewsTab(props: PlaceReviewsTabProps & { placeId: number }) {
                         },
                         {
                           onSuccess: () => {
-                            Toast.show("Thank you for the review!", {
-                              duration: Toast.durations.SHORT,
-                              position: 40
+                            showToast({
+                              message: "Thank you for the review!"
                             });
 
                             setIsModalVisible(!isModalVisible);

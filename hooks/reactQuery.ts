@@ -81,23 +81,33 @@ export function useCreateReview() {
   )
 }
 
+interface updatePlacePayload {
+  placeId: number;
+  placeContent: string;
+}
 
-export function useUpdatePlaceContent() {
-  // const queryClient = useQueryClient()
+export function useUpdatePlaceContent(id) {
+  const queryClient = useQueryClient();
 
-  return useMutation<unknown, unknown>(
-    async ({ placeContent, placeId }) => {
-      const { error } = await supabase.from('places').update({ content: placeContent })
-        .eq('id', placeId)
+  return useMutation<unknown, unknown, updatePlacePayload>(
+    async ({ placeContent }) => {
+      const { data, error } = await supabase.from('places').update({ content: placeContent })
+        .eq('id', id).select().single();
 
       if (error != null) {
         throw new Error(error.message)
       }
+
+      return data;
     },
-    // {
-    //   onSuccess: () => {
-    //     void queryClient.invalidateQueries('reviews')
-    //   }
-    // }
+    {
+      onSuccess: (placeWithUpdatedContent) => {
+        queryClient.setQueriesData(['places'], (oldData) => {
+          return oldData.map((place) =>
+            place.id === id ? { ...place, content: placeWithUpdatedContent.content } : place
+          );
+        });
+      },
+    }
   )
 }

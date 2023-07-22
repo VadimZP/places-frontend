@@ -9,10 +9,10 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
-  ActivityIndicator,
   FlatList,
   Modal,
-  TextInput
+  TextInput,
+  ActivityIndicator
 } from "react-native";
 import { type QueryClient, useQueryClient } from "react-query";
 import { decode } from "base64-arraybuffer";
@@ -25,6 +25,8 @@ import { supabase } from "../supabase";
 import PopupMenu from "../components/PopupMenu";
 import MyButton from "../components/MyButton";
 import { useUpdatePlaceContent } from "../hooks/reactQuery";
+import { useFocusEffect } from "@react-navigation/native";
+import { showToast } from "../components/Toast";
 
 function PlaceDetailsTab(
   props: PlaceDetailsTabProps & {
@@ -107,6 +109,7 @@ function PlaceDetailsTab(
 
     for (const photo of photos) {
       const photoNameAndExtension = photo.uri.split("/").pop();
+
       if (photo.base64 != null && typeof photoNameAndExtension === "string") {
         const { error } = await supabase.storage
           .from("places")
@@ -123,21 +126,14 @@ function PlaceDetailsTab(
             errorMessage = "An unknown error occurred";
           }
 
-          Toast.show(errorMessage, {
-            duration: Toast.durations.LONG,
-            position: 40,
-            backgroundColor: "#bf0000"
-          });
+          showToast({ message: errorMessage, backgroundColor: "#bf0000" });
         } else {
           setPhotos([]);
-
-          Toast.show("Your photos were successfully uploaded!", {
-            duration: Toast.durations.LONG,
-            position: 40
-          });
+          showToast({ message: "Your photos were successfully uploaded!" });
         }
         setIsMediaLoading(false);
         setIsCameraComponentVisible(false);
+        setIsModalVisible(false);
       }
     }
   }
@@ -186,7 +182,13 @@ function PlaceDetailsTab(
   const [isContentEditable, setIsContentEditable] = useState<boolean>(false);
   const [placeContent, setPlaceContent] = useState(place?.content);
 
-  const mutation = useUpdatePlaceContent();
+  const mutation = useUpdatePlaceContent(place?.id);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     queryClient.refetchQueries('places');
+  //   }, [])
+  // );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -244,6 +246,14 @@ function PlaceDetailsTab(
                           bottom: 160
                         }}
                         onPress={takeAPhoto}
+                      />
+                    )}
+
+                    {photos.length > 0 && (
+                      <MyButton
+                        isLoading={isMediaLoading}
+                        onPress={uploadNewPhotos}
+                        title="Upload photos"
                       />
                     )}
                   </Camera>
@@ -346,16 +356,6 @@ function PlaceDetailsTab(
                           );
                         })}
                       </ScrollView>
-                      {/* <Pressable
-                        style={styles.button}
-                        onPress={uploadNewPhotos}
-                      >
-                        {isMediaLoading ? (
-                          <ActivityIndicator size="large" color="#0000ff" />
-                        ) : (
-                          <Text style={styles.textStyle}>Upload photos</Text>
-                        )}
-                      </Pressable> */}
                     </View>
                   )}
                 </View>
@@ -431,15 +431,27 @@ function PlaceDetailsTab(
               <View style={styles.textEditorButtons}>
                 <MyButton
                   title="Apply"
+                  disabled={placeContent === place?.content}
                   onPress={() => {
                     if (placeContent != null) {
-                      mutation.mutate({ placeContent, placeId });
+                      mutation.mutate(
+                        { placeContent, placeId },
+                        {
+                          onSuccess: () => {
+                            setIsContentEditable(false);
+                            showToast({
+                              message: "Place content was successfully updated!"
+                            });
+                          }
+                        }
+                      );
                     }
                   }}
                 />
                 <MyButton
                   title="Discard"
                   onPress={() => {
+                    setPlaceContent(place?.content);
                     setIsContentEditable(false);
                   }}
                 />
@@ -457,7 +469,7 @@ function PlaceDetailsTab(
               />
             </>
           ) : (
-            <Text style={styles.content}>{place?.content}</Text>
+            <Text style={styles.content}>{placeContent}</Text>
           )}
         </View>
 
