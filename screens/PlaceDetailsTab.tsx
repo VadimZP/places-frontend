@@ -7,16 +7,16 @@ import {
   Button,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   FlatList,
   Modal,
   TextInput,
   ActivityIndicator
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { type QueryClient, useQueryClient } from "react-query";
 import { decode } from "base64-arraybuffer";
-import Toast from "react-native-root-toast";
 
 import { Entypo } from "@expo/vector-icons";
 
@@ -25,7 +25,6 @@ import { supabase } from "../supabase";
 import PopupMenu from "../components/PopupMenu";
 import MyButton from "../components/MyButton";
 import { useUpdatePlaceContent } from "../hooks/reactQuery";
-import { useFocusEffect } from "@react-navigation/native";
 import { showToast } from "../components/Toast";
 
 function PlaceDetailsTab(
@@ -151,7 +150,7 @@ function PlaceDetailsTab(
           }}
           name="dots-three-vertical"
           size={24}
-          color="black"
+          color="#fff"
         />
       )
     });
@@ -184,14 +183,8 @@ function PlaceDetailsTab(
 
   const mutation = useUpdatePlaceContent(place?.id);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     queryClient.refetchQueries('places');
-  //   }, [])
-  // );
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       {isPopupMenuVisible && <PopupMenu menuItems={menuItems} />}
 
       <Modal
@@ -422,55 +415,103 @@ function PlaceDetailsTab(
           </Pressable>
         </SafeAreaView>
       </Modal>
-
+      <Image
+        source={{
+          uri: "https://t0.gstatic.com/licensed-image?q=tbn:ANd9GcQwcnQ6hcpUxlfIQT6dySjgxlrkYDbimMAKhutBfuXI1ShjaQ7j5dUmtgMgJ_nG13ZI"
+        }}
+        style={{
+          width: "100%",
+          height: 300,
+          backgroundColor: "yellow",
+          position: "absolute",
+          top: 0,
+          left: 0
+        }}
+      ></Image>
       <View style={styles.wrapper}>
         <View style={{ marginBottom: 20 }}>
-          <Text style={styles.name}>{place?.name}</Text>
-          {isContentEditable ? (
-            <>
-              <View style={styles.textEditorButtons}>
-                <MyButton
-                  title="Apply"
-                  disabled={placeContent === place?.content}
-                  onPress={() => {
-                    if (placeContent != null) {
-                      mutation.mutate(
-                        { placeContent, placeId },
-                        {
-                          onSuccess: () => {
-                            setIsContentEditable(false);
-                            showToast({
-                              message: "Place content was successfully updated!"
-                            });
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 26
+            }}
+          >
+            <Text style={styles.name}>{place?.name}</Text>
+            <Entypo
+              onPress={() => {
+                setIsPopupMenuVisible((prev) => !prev);
+              }}
+              name="dots-three-vertical"
+              size={24}
+              color="#4D3453"
+            />
+          </View>
+          <View
+            style={{
+              position: "relative"
+            }}
+          >
+            {isContentEditable ? (
+              <>
+                <View style={styles.textEditorButtons}>
+                  <MyButton
+                    title="Apply"
+                    width={80}
+                    height={22}
+                    pressableStyles={{ borderRadius: 4, marginRight: 16 }}
+                    textStyles={{ fontSize: 12 }}
+                    isDisabled={placeContent === place?.content}
+                    onPress={() => {
+                      if (placeContent != null) {
+                        mutation.mutate(
+                          { placeContent, placeId },
+                          {
+                            onSuccess: () => {
+                              setIsContentEditable(false);
+                              showToast({
+                                message:
+                                  "Place content was successfully updated!"
+                              });
+                            }
                           }
-                        }
-                      );
+                        );
+                      }
+                    }}
+                  />
+                  <MyButton
+                    title="Discard"
+                    width={80}
+                    height={22}
+                    pressableStyles={{ borderRadius: 4 }}
+                    textStyles={{ fontSize: 12 }}
+                    onPress={() => {
+                      setPlaceContent(place?.content);
+                      setIsContentEditable(false);
+                    }}
+                  />
+                </View>
+                <TextInput
+                  style={[
+                    styles.content,
+                    {
+                      color: "#4D3453",
+                      fontSize: 16,
+                      fontFamily: "RobotoMono_700Bold"
                     }
-                  }}
+                  ]}
+                  onChangeText={setPlaceContent}
+                  multiline
+                  value={placeContent}
+                  placeholder="Describe you experience!"
+                  keyboardType="numeric"
                 />
-                <MyButton
-                  title="Discard"
-                  onPress={() => {
-                    setPlaceContent(place?.content);
-                    setIsContentEditable(false);
-                  }}
-                />
-              </View>
-              <TextInput
-                style={[
-                  styles.content,
-                  { borderWidth: 2, fontFamily: "RobotoMono_400Regular" }
-                ]}
-                onChangeText={setPlaceContent}
-                multiline
-                value={placeContent}
-                placeholder="useless placeholder"
-                keyboardType="numeric"
-              />
-            </>
-          ) : (
-            <Text style={styles.content}>{placeContent}</Text>
-          )}
+              </>
+            ) : (
+              <Text style={styles.content}>{placeContent}</Text>
+            )}
+          </View>
         </View>
 
         {placePhotos.length > 0 && (
@@ -496,24 +537,26 @@ export default memo(PlaceDetailsTab);
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff8e7",
-    flex: 1
+    position: "relative",
+    flex: 1,
+    paddingTop: 250
   },
   wrapper: {
     flex: 1,
-    padding: 16
+    padding: 26,
+    backgroundColor: "#F5F5F5",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50
   },
   name: {
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#412e00",
-    fontSize: 24,
-    marginBottom: 20,
+    color: "#4D3453",
+    fontSize: 28,
     fontFamily: "RobotoMono_700Bold"
   },
   content: {
-    color: "#412e00",
-    fontSize: 14
+    color: "#4D3453",
+    fontSize: 16,
+    fontFamily: "RobotoMono_700Bold"
   },
   placeImg: {
     width: 100,
@@ -572,9 +615,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   textEditorButtons: {
-    marginBottom: 14,
-    flexDirection: "row",
-    justifyContent: "space-around"
+    marginLeft: 20,
+    top: -16,
+    zIndex: 1,
+    position: "absolute",
+    flexDirection: "row"
   },
   centeredView: {
     flex: 1,

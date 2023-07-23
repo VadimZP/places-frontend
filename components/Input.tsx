@@ -6,7 +6,6 @@ import {
   TextInput,
   View
 } from "react-native";
-import { color } from "react-native-elements/dist/helpers";
 
 interface InputProps<T> {
   label: string;

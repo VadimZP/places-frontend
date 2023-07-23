@@ -26,8 +26,10 @@ export default function PlaceScreen({
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarStyle: {
+          backgroundColor: "#4D3453"
+        },
+        tabBarIcon: ({ color, size }) => {
           let iconName;
           let component;
 
@@ -50,8 +52,7 @@ export default function PlaceScreen({
           );
         },
 
-        tabBarActiveTintColor: "#975FA5",
-        tabBarInactiveTintColor: "#4B4B4B"
+        tabBarActiveTintColor: "#fff"
       })}
     >
       <Tab.Screen
@@ -84,8 +85,7 @@ export default function PlaceScreen({
 
 const styles = StyleSheet.create({
   tabBarLabelStyle: {
-    color: "#4B4B4B",
-    fontWeight: "bold",
-    fontSize: 12
+    fontSize: 12,
+    fontFamily: "RobotoMono_700Bold"
   }
 });

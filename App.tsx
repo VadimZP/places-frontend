@@ -128,13 +128,15 @@ export default function App() {
                   name="Place"
                   component={PlaceScreen}
                   options={{
-                    headerRight: () => (
-                      <Entypo.Button
-                        name="dots-three-vertical"
-                        size={24}
-                        color="black"
-                      />
-                    )
+                    headerShown: false,
+                    headerStyle: {
+                      backgroundColor: "#4D3453"
+                    },
+                    headerTintColor: "#fff",
+                    headerTitleStyle: {
+                      fontFamily: "RobotoMono_700Bold",
+                      fontWeight: "bold"
+                    }
                   }}
                 />
               </>
